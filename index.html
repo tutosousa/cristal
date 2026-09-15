@@ -713,33 +713,88 @@ button{ font-family: inherit; cursor: pointer; }
 }
 
 /* ==========================================================================
-   PANIFICADORA — variacao de identidade dentro do mesmo sistema
-   Mantem a mesma base (verde/creme/dourado) mas com calor extra (terracota)
-   para deixar claro que e outra marca, sem sair do universo Cristal
+   PANIFICADORA CRISTAL - identidade propria, predominantemente vermelha.
+   Tudo que aqui era herdado do verde da Floricultura passa a vermelho,
+   isolado neste seletor para nao afetar nenhuma outra pagina.
    ========================================================================== */
 .tema-panificadora{
-  --accent-pan: #B4552F;
+  --accent-pan: #C1272D;         /* vermelho principal da Panificadora */
+  --accent-pan-escuro: #7A1418;  /* vermelho escuro / bordo, para contraste e fundos */
+  --accent-pan-claro: #F1C6C9;   /* vermelho claro, para uso sobre fundos escuros */
+  --sombra: 0 18px 40px -22px rgba(122, 20, 24, 0.35);
 }
+
+/* Header e navegacao */
+.tema-panificadora .header{ border-bottom-color: rgba(122,20,24,0.10); }
+.tema-panificadora .marca__nome{ color: var(--accent-pan); }
 .tema-panificadora .marca__sub,
 .tema-panificadora .secao__legenda,
 .tema-panificadora .divisor-floral,
-.tema-panificadora .produto-card__categoria{
+.tema-panificadora .produto-card__categoria,
+.tema-panificadora .ponte__marca{
   color: var(--accent-pan);
 }
+.tema-panificadora .divisor-floral .linha{ background: var(--accent-pan-claro); }
 .tema-panificadora .nav-principal a::after{ background: var(--accent-pan); }
+.tema-panificadora .nav-principal a:hover{ color: var(--accent-pan); }
+.tema-panificadora .nav-principal a.ativo{ color: var(--accent-pan); }
+.tema-panificadora .menu-toggle{ color: var(--accent-pan); }
+.tema-panificadora .menu-mobile__fechar{ color: var(--accent-pan); }
+.tema-panificadora .menu-mobile nav a{ color: var(--accent-pan); }
+
+/* Titulos (h1-h4) - com excecoes explicitas onde o texto branco ja funciona bem */
+.tema-panificadora h1,
+.tema-panificadora h2,
+.tema-panificadora h3,
+.tema-panificadora h4{ color: var(--accent-pan-escuro); }
+.tema-panificadora .hero__conteudo h1{ color: var(--creme); }
+.tema-panificadora .cta-final h2{ color: var(--creme); }
+.tema-panificadora .secao--escura h2{ color: var(--creme); }
+.tema-panificadora .secao--escura .secao__legenda{ color: var(--accent-pan-claro); }
+
+/* Hero */
+.tema-panificadora .hero{ background: var(--accent-pan-escuro); }
+.tema-panificadora .hero__imagem::after{
+  background: linear-gradient(90deg, rgba(122,20,24,0.6), rgba(122,20,24,0) 35%);
+}
+.tema-panificadora .hero__eyebrow{ color: var(--accent-pan-claro); }
+
+/* Botoes */
 .tema-panificadora .botao--primario{ background: var(--accent-pan); }
-.tema-panificadora .botao--primario:hover{ background: #8f4325; }
-.tema-panificadora .produto-card__link{ border-color: var(--accent-pan); }
-.tema-panificadora .produto-card__link:hover{ color: var(--accent-pan); }
+.tema-panificadora .botao--primario:hover{ background: var(--accent-pan-escuro); }
+.tema-panificadora .botao--contorno{ color: var(--accent-pan); border-color: var(--accent-pan); }
+.tema-panificadora .botao--contorno:hover{ background: var(--accent-pan); color: var(--creme); }
+.tema-panificadora .botao--claro{ color: var(--accent-pan); }
+.tema-panificadora .botao--claro:hover{ background: var(--accent-pan); color: var(--creme); }
+
+/* Cards de produto */
+.tema-panificadora .produto-card{ border-color: rgba(122,20,24,0.12); }
+.tema-panificadora .produto-card__link{ color: var(--accent-pan-escuro); border-color: var(--accent-pan); }
+.tema-panificadora .produto-card__link:hover{ color: var(--accent-pan); border-color: var(--accent-pan-escuro); }
+.tema-panificadora .produto-card__adicionar{ color: var(--accent-pan-escuro); }
+.tema-panificadora .produto-card__adicionar:hover{ background: var(--accent-pan); color: var(--creme); }
+.tema-panificadora .produto-card__preco{ color: var(--accent-pan-escuro); }
+
+/* Filtros de categoria */
+.tema-panificadora .filtro{ border-color: rgba(122,20,24,0.28); }
 .tema-panificadora .filtro.ativo, .tema-panificadora .filtro:hover{
   background: var(--accent-pan); border-color: var(--accent-pan);
 }
+
+/* Galeria (grade estilo Instagram) */
+.tema-panificadora .instagram-item:hover::after{ background: rgba(122,20,24,0.28); }
+
+/* CTA e secoes escuras (reservado para uso futuro nesta pagina) */
 .tema-panificadora .cta-final,
-.tema-panificadora .secao--escura{ background: #2C1B12; }
-.tema-panificadora .rodape{ background: #241811; }
+.tema-panificadora .secao--escura{ background: var(--accent-pan-escuro); }
+
+/* Footer */
+.tema-panificadora .rodape{ background: #3A0F13; }
+.tema-panificadora .rodape a:hover{ color: var(--accent-pan-claro); }
+.tema-panificadora .rodape__base a{ color: var(--accent-pan-claro); }
 
 .faixa-voltar{
-  background: var(--verde-profundo);
+  background: var(--accent-pan-escuro, #7A1418);
   color: var(--creme);
 }
 .faixa-voltar .container{
@@ -750,7 +805,7 @@ button{ font-family: inherit; cursor: pointer; }
   padding: 10px 28px;
   font-size: 0.82rem;
 }
-.faixa-voltar a{ color: var(--dourado-claro); border-bottom: 1px solid rgba(231,183,190,0.55); }
+.faixa-voltar a{ color: #F1C6C9; border-bottom: 1px solid rgba(241,198,201,0.55); }
 
 .contato-grade{
   display: grid;
@@ -783,7 +838,7 @@ button{ font-family: inherit; cursor: pointer; }
   margin-bottom: 2px;
 }
 .tema-panificadora .lista-contato__item svg{ color: var(--accent-pan); }
-.tema-panificadora .lista-contato__item strong{ color: var(--tinta); }
+.tema-panificadora .lista-contato__item strong{ color: var(--accent-pan-escuro); }
 
 .mapa-placeholder{
   aspect-ratio: 4/3;

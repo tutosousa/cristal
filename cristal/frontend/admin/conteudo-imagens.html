@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<link rel="icon" type="image/png" href="../assets/favicon.png">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cristal Floricultura Admin — Imagens do Site</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/style.css">
+<link rel="stylesheet" href="css/admin.css">
+</head>
+<body class="admin-body">
+
+<div class="admin-shell">
+  <aside class="admin-sidebar">
+    <div class="admin-sidebar__logo">
+      <img src="../assets/logo.png" alt="Logo Cristal Floricultura">
+      <span>Cristal Floricultura Admin</span>
+    </div>
+    <ul class="admin-sidebar__nav" id="admin-nav"></ul>
+    <div class="admin-sidebar__rodape">
+      <p class="texto-suave" style="font-size:0.85rem; margin-bottom:8px;">Olá, <strong id="admin-nome"></strong></p>
+      <button class="btn btn-secundario btn-bloco" id="btn-sair">Sair</button>
+    </div>
+  </aside>
+
+  <main class="admin-main">
+    <div class="admin-topo">
+      <div>
+        <h1 style="margin-bottom:2px;">Imagens do site</h1>
+        <p class="texto-suave">Troque os banners e fotos de destaque da Cristal Floricultura e da Pan Cristal sem precisar mexer em código — a troca aparece no site assim que você salvar.</p>
+      </div>
+    </div>
+
+    <!-- Abas: as imagens das duas marcas nunca se misturam — cada uma só
+         altera o seu próprio site. -->
+    <div class="sub-abas-pedidos" style="margin-bottom:24px; background:#fff; border:1px solid var(--admin-linha, #e7e5e0); border-radius:3px;">
+      <a href="#" data-aba="cristal" class="ativo">Cristal Floricultura</a>
+      <a href="#" data-aba="pan-cristal">Pan Cristal</a>
+    </div>
+
+    <div id="alerta-conteudo"></div>
+
+    <div id="aba-cristal">
+      <div id="lista-imagens-cristal">
+        <p class="carregando">Carregando...</p>
+      </div>
+    </div>
+
+    <div id="aba-pan-cristal" style="display:none;">
+      <div id="lista-imagens-pan-cristal">
+        <p class="carregando">Carregando...</p>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script src="../js/api.js"></script>
+<script src="../js/cart.js"></script>
+<script src="js/admin.js"></script>
+<script>
+exigirLoginAdmin();
+montarSidebarAdmin('conteudo-imagens');
+
+// Arquivo escolhido (ainda não enviado) por chave "site:chave" — guardado
+// em memória só até o admin clicar em "Salvar".
+const arquivosSelecionados = {};
+
+function iconeUpload() {
+  return `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5-5 5 5"/><path d="M12 5v12"/></svg>`;
+}
+
+function renderizarItemImagem(site, item) {
+  const idPreview = `preview-${site}-${item.chave}`;
+  const idInput = `input-${site}-${item.chave}`;
+  const idStatus = `status-${site}-${item.chave}`;
+  const idBotaoSalvar = `salvar-${site}-${item.chave}`;
+  const idBotaoRemover = `remover-${site}-${item.chave}`;
+  const idAlerta = `alerta-${site}-${item.chave}`;
+
+  const previewConteudo = item.imagem_url
+    ? `<img id="${idPreview}" src="${BACKEND_ORIGIN}${item.imagem_url}" alt="${escapeHtml(item.label)}">`
+    : `<span id="${idPreview}" class="texto-suave" style="font-size:0.78rem; text-align:center; padding:8px;">Nenhuma imagem enviada ainda</span>`;
+
+  return `
+    <div class="admin-painel" style="margin-bottom:16px;">
+      <div class="admin-painel__cabecalho">
+        <h3 style="font-size:1rem;">${escapeHtml(item.label)}</h3>
+      </div>
+      <div style="padding:20px 24px; display:flex; gap:20px; flex-wrap:wrap; align-items:flex-start;">
+        <div class="galeria-admin-item" style="width:160px; height:120px; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+          ${previewConteudo}
+        </div>
+        <div style="flex:1; min-width:240px;">
+          <div class="upload-fotos">
+            <label class="upload-fotos__botao">
+              ${iconeUpload()}
+              Selecionar imagem
+              <input type="file" id="${idInput}" accept="image/png,image/jpeg,image/webp,image/gif" style="display:none;" data-site="${site}" data-chave="${item.chave}">
+            </label>
+            <span class="upload-fotos__status" id="${idStatus}">Nenhuma imagem selecionada</span>
+          </div>
+          <div class="acoes-linha" style="margin-top:12px;">
+            <button type="button" class="btn btn-primario" id="${idBotaoSalvar}" data-site="${site}" data-chave="${item.chave}" disabled>Salvar</button>
+            <button type="button" class="btn btn-secundario" id="${idBotaoRemover}" data-site="${site}" data-chave="${item.chave}" ${item.imagem_url ? '' : 'style="display:none;"'}>Remover imagem</button>
+          </div>
+          <div id="${idAlerta}" style="margin-top:8px;"></div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function ligarEventosItem(site, chave) {
+  const input = document.getElementById(`input-${site}-${chave}`);
+  const status = document.getElementById(`status-${site}-${chave}`);
+  const botaoSalvar = document.getElementById(`salvar-${site}-${chave}`);
+  const botaoRemover = document.getElementById(`remover-${site}-${chave}`);
+  const alertaItem = document.getElementById(`alerta-${site}-${chave}`);
+  const previewAnterior = document.getElementById(`preview-${site}-${chave}`);
+
+  input.addEventListener('change', (e) => {
+    const arquivo = e.target.files[0];
+    if (!arquivo) return;
+
+    arquivosSelecionados[`${site}:${chave}`] = arquivo;
+    status.textContent = arquivo.name;
+    status.classList.add('upload-fotos__status--ativo');
+    botaoSalvar.disabled = false;
+    alertaItem.innerHTML = '';
+
+    // Prévia antes de salvar — substitui a caixa de preview (foto ou
+    // texto "nenhuma imagem") pela nova imagem escolhida, só visualmente.
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const caixa = previewAnterior.closest('.galeria-admin-item');
+      caixa.innerHTML = `<img src="${ev.target.result}" alt="Prévia de ${escapeHtml(chave)}">`;
+    };
+    reader.readAsDataURL(arquivo);
+  });
+
+  botaoSalvar.addEventListener('click', async () => {
+    const arquivo = arquivosSelecionados[`${site}:${chave}`];
+    if (!arquivo) return;
+
+    botaoSalvar.disabled = true;
+    botaoSalvar.textContent = 'Salvando...';
+    alertaItem.innerHTML = '';
+
+    const formData = new FormData();
+    formData.append('imagem', arquivo);
+
+    try {
+      await apiFetchAdmin(`/conteudo-imagens/${site}/${chave}`, { method: 'PUT', body: formData });
+      alertaItem.innerHTML = `<div class="alerta alerta-sucesso" style="font-size:0.82rem; padding:8px 10px;">Imagem atualizada com sucesso.</div>`;
+      status.textContent = 'Nenhuma imagem selecionada';
+      status.classList.remove('upload-fotos__status--ativo');
+      input.value = '';
+      delete arquivosSelecionados[`${site}:${chave}`];
+      botaoSalvar.textContent = 'Salvar';
+      botaoRemover.style.display = '';
+    } catch (err) {
+      alertaItem.innerHTML = `<div class="alerta alerta-erro" style="font-size:0.82rem; padding:8px 10px;">Não foi possível enviar a imagem. Verifique o formato e tente novamente.</div>`;
+      botaoSalvar.textContent = 'Salvar';
+      botaoSalvar.disabled = false;
+      console.error(err);
+    }
+  });
+
+  botaoRemover.addEventListener('click', async () => {
+    if (!confirm('Tem certeza de que deseja remover esta imagem?')) return;
+
+    botaoRemover.disabled = true;
+    botaoRemover.textContent = 'Removendo...';
+    alertaItem.innerHTML = '';
+
+    try {
+      await apiFetchAdmin(`/conteudo-imagens/${site}/${chave}`, { method: 'DELETE' });
+
+      // Localiza a caixa de preview a partir do próprio botão (sempre
+      // presente no DOM) em vez do elemento de preview antigo, que pode já
+      // ter sido substituído por uma prévia local ainda não salva.
+      const caixaPreview = botaoRemover.closest('.admin-painel').querySelector('.galeria-admin-item');
+      if (caixaPreview) {
+        caixaPreview.innerHTML = `<span id="preview-${site}-${chave}" class="texto-suave" style="font-size:0.78rem; text-align:center; padding:8px;">Nenhuma imagem enviada ainda</span>`;
+      }
+
+      alertaItem.innerHTML = `<div class="alerta alerta-sucesso" style="font-size:0.82rem; padding:8px 10px;">Imagem removida com sucesso.</div>`;
+      botaoRemover.style.display = 'none';
+      botaoRemover.textContent = 'Remover imagem';
+      botaoRemover.disabled = false;
+
+      // Se havia um arquivo pendente (selecionado mas não salvo), descarta —
+      // a remoção age sobre a imagem já cadastrada no servidor.
+      delete arquivosSelecionados[`${site}:${chave}`];
+      input.value = '';
+      status.textContent = 'Nenhuma imagem selecionada';
+      status.classList.remove('upload-fotos__status--ativo');
+      botaoSalvar.disabled = true;
+    } catch (err) {
+      alertaItem.innerHTML = `<div class="alerta alerta-erro" style="font-size:0.82rem; padding:8px 10px;">Não foi possível remover a imagem. Tente novamente.</div>`;
+      botaoRemover.textContent = 'Remover imagem';
+      botaoRemover.disabled = false;
+      console.error(err);
+    }
+  });
+}
+
+async function carregarImagensSite(site, containerId) {
+  const container = document.getElementById(containerId);
+  try {
+    const itens = await apiFetchAdmin(`/conteudo-imagens/${site}`);
+    container.innerHTML = itens.map((item) => renderizarItemImagem(site, item)).join('');
+    itens.forEach((item) => ligarEventosItem(site, item.chave));
+  } catch (err) {
+    container.innerHTML = `<div class="alerta alerta-erro">${escapeHtml(err.message)}</div>`;
+  }
+}
+
+// Abas
+document.querySelectorAll('[data-aba]').forEach((aba) => {
+  aba.addEventListener('click', (e) => {
+    e.preventDefault();
+    document.querySelectorAll('[data-aba]').forEach((a) => a.classList.remove('ativo'));
+    aba.classList.add('ativo');
+    document.getElementById('aba-cristal').style.display = aba.dataset.aba === 'cristal' ? 'block' : 'none';
+    document.getElementById('aba-pan-cristal').style.display = aba.dataset.aba === 'pan-cristal' ? 'block' : 'none';
+  });
+});
+
+carregarImagensSite('cristal', 'lista-imagens-cristal');
+carregarImagensSite('pan-cristal', 'lista-imagens-pan-cristal');
+</script>
+</body>
+</html>

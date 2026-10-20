@@ -1,0 +1,627 @@
+/* =========================================================================
+   PANIFICADORA PAN CRISTAL — Surubim, PE
+   Identidade própria e independente da Cristal Floricultura: vermelho forte
+   #F5000B + branco (preto só como apoio de contraste). AGRESSIVA, FORTE,
+   ENERGÉTICA — composição inspirada em referência visual (estrutura,
+   hierarquia, proporções e ritmo), com conteúdo 100% próprio da Pan Cristal.
+   Nada deste arquivo é compartilhado com css/style.css (floricultura).
+   ========================================================================= */
+
+:root {
+  --pc-vermelho: #F5000B;
+  --pc-vermelho-escuro: #C40009;
+  --pc-vermelho-profundo: #7A0006;
+  --pc-vermelho-fundo: #FFF0EE;
+  --pc-vermelho-fundo-forte: #FFD9D6;
+
+  --pc-preto: #14100F;
+  --pc-quase-preto: #201A19;
+  --pc-branco: #FFFFFF;
+  --pc-cinza-claro: #F5F3F1;
+
+  --pc-texto: #1A1413;
+  --pc-texto-suave: #6B5F5D;
+  --pc-linha: #EFE4E2;
+
+  --pc-fonte-titulo: 'Fraunces', Georgia, 'Times New Roman', serif;
+  --pc-fonte-base: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+
+  --pc-raio: 10px;
+  --pc-raio-peq: 4px;
+  --pc-largura-maxima: 1280px;
+}
+
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+
+body.pc-corpo {
+  margin: 0;
+  font-family: var(--pc-fonte-base);
+  color: var(--pc-texto);
+  background: var(--pc-branco);
+  font-size: 16px;
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+}
+
+.pc-corpo h1, .pc-corpo h2, .pc-corpo h3 {
+  font-family: var(--pc-fonte-base);
+  font-weight: 800;
+  line-height: 1.06;
+  letter-spacing: -0.01em;
+  margin: 0 0 0.4em 0;
+  color: var(--pc-preto);
+}
+.pc-corpo h1 { font-size: clamp(2.6rem, 6.2vw, 4.6rem); text-transform: uppercase; }
+.pc-corpo h2 { font-size: clamp(1.9rem, 3.6vw, 2.7rem); }
+.pc-corpo h3 { font-size: 1.05rem; font-weight: 800; color: var(--pc-preto); }
+.pc-corpo p { margin: 0 0 1em 0; }
+.pc-corpo a { color: var(--pc-vermelho); text-decoration: none; }
+.pc-corpo a:hover { text-decoration: underline; }
+.pc-corpo img { max-width: 100%; display: block; }
+
+.pc-container { max-width: var(--pc-largura-maxima); margin: 0 auto; padding: 0 24px; }
+
+.pc-corpo a:focus-visible, .pc-corpo button:focus-visible {
+  outline: 2.5px solid var(--pc-vermelho);
+  outline-offset: 2px;
+}
+
+.pc-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--pc-vermelho);
+}
+.pc-eyebrow svg { width: 14px; height: 14px; }
+.pc-secao--preta .pc-eyebrow,
+.pc-sobre .pc-eyebrow { color: #fff; }
+
+/* ============================== BARRA UTILITÁRIA ============================== */
+/* Faixa fina no topo: assinatura da marca + contato — mesma lógica de
+   referência (utilidades acima do menu principal), conteúdo 100% próprio. */
+.pc-topbar {
+  background: var(--pc-preto);
+  color: rgba(255,255,255,0.82);
+  font-size: 0.8rem;
+  padding: 8px 0;
+}
+.pc-topbar__linha {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.pc-topbar__assinatura {
+  font-family: var(--pc-fonte-titulo);
+  font-style: italic;
+  font-weight: 600;
+  color: var(--pc-vermelho);
+  font-size: 0.95rem;
+}
+.pc-topbar__contato {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  flex-wrap: wrap;
+}
+.pc-topbar__contato a {
+  color: rgba(255,255,255,0.82);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+}
+.pc-topbar__contato a:hover { color: #fff; text-decoration: none; }
+.pc-topbar__contato svg { width: 14px; height: 14px; }
+@media (max-width: 700px) { .pc-topbar__assinatura { display: none; } }
+
+/* ============================== CABEÇALHO ============================== */
+.pc-header {
+  background: var(--pc-vermelho);
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  box-shadow: 0 2px 14px rgba(0,0,0,0.12);
+}
+.pc-header__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 14px 0;
+}
+
+/* Logo real da Pan Cristal (arquivo enviado pela marca) — sobre um fundo
+   branco arredondado para manter contraste e legibilidade no cabeçalho
+   vermelho, sem distorcer, recortar ou recriar a arte original. */
+.pc-header__logo {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  background: var(--pc-branco);
+  border-radius: 8px;
+  padding: 6px 10px;
+}
+.pc-header__logo-imagem {
+  height: 40px;
+  width: auto;
+  max-width: 160px;
+  object-fit: contain;
+  display: block;
+}
+
+.pc-header__nav {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  flex: 1;
+}
+.pc-header__nav a {
+  color: rgba(255,255,255,0.92);
+  font-weight: 700;
+  font-size: 0.82rem;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  padding: 10px 14px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+.pc-header__nav a:hover { background: rgba(255,255,255,0.14); text-decoration: none; }
+.pc-header__nav a.pc-header__nav-destaque {
+  background: var(--pc-branco);
+  color: var(--pc-vermelho);
+}
+.pc-header__nav a.pc-header__nav-destaque:hover { background: var(--pc-cinza-claro); }
+.pc-header__home {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.16);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.pc-header__home:hover { background: rgba(255,255,255,0.28); text-decoration: none; }
+.pc-header__home svg { width: 18px; height: 18px; }
+
+.pc-header__menu-toggle {
+  display: none;
+  width: 40px; height: 40px;
+  border-radius: var(--pc-raio-peq);
+  background: rgba(255,255,255,0.16);
+  border: none;
+  color: #fff;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+@media (max-width: 900px) {
+  .pc-header__nav { display: none; width: 100%; justify-content: flex-start; flex-direction: column; align-items: stretch; gap: 2px; padding-top: 10px; }
+  .pc-header__nav.pc-header__nav--aberto { display: flex; }
+  .pc-header__nav a { text-align: left; }
+  .pc-header__top { flex-wrap: wrap; }
+  .pc-header__menu-toggle { display: flex; }
+}
+
+/* ================================ BOTÕES ================================ */
+.pc-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  font-family: inherit; font-size: 0.85rem; font-weight: 800;
+  letter-spacing: 0.04em; text-transform: uppercase;
+  padding: 15px 28px; border-radius: 999px; border: 2px solid transparent;
+  cursor: pointer; transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease, transform 0.1s ease;
+  text-align: center;
+}
+.pc-btn--primario { background: var(--pc-vermelho); color: #fff; }
+.pc-btn--primario:hover { background: var(--pc-vermelho-escuro); text-decoration: none; transform: translateY(-1px); }
+.pc-btn--branco { background: var(--pc-branco); color: var(--pc-vermelho); }
+.pc-btn--branco:hover { background: var(--pc-cinza-claro); text-decoration: none; transform: translateY(-1px); }
+.pc-btn--secundario { background: transparent; color: #fff; border-color: rgba(255,255,255,0.6); }
+.pc-btn--secundario:hover { background: rgba(255,255,255,0.14); text-decoration: none; }
+.pc-btn--claro { background: transparent; color: var(--pc-preto); border-color: var(--pc-preto); }
+.pc-btn--claro:hover { background: var(--pc-preto); color: #fff; text-decoration: none; }
+.pc-btn--grande { padding: 18px 34px; font-size: 0.9rem; }
+
+/* Botão com selo circular sobreposto — mesmo princípio de composição da
+   referência (destaque de ação com um pequeno acento circular na borda). */
+.pc-btn-selo {
+  position: relative;
+  display: inline-flex;
+}
+.pc-btn-selo__marca {
+  position: absolute;
+  top: 50%; right: -14px;
+  transform: translateY(-50%);
+  width: 34px; height: 34px;
+  border-radius: 50%;
+  background: var(--pc-branco);
+  border: 2px solid var(--pc-vermelho);
+  display: flex; align-items: center; justify-content: center;
+  color: var(--pc-vermelho);
+}
+.pc-btn-selo__marca svg { width: 14px; height: 14px; }
+
+/* ================================= HERO ================================= */
+/* Banner principal = foto real enviada pela marca (fachada da loja),
+   ocupando toda a área do hero. Camada escura por trás do texto é só o
+   suficiente para leitura — discreta, sem esconder a fotografia. */
+.pc-hero {
+  position: relative;
+  min-height: 560px;
+  background: var(--pc-preto); /* cor de fundo enquanto a foto carrega */
+  color: #fff;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+}
+.pc-hero__foto {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 38%;
+}
+.pc-hero::after {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(90deg, rgba(10,8,8,0.72) 0%, rgba(10,8,8,0.38) 48%, rgba(10,8,8,0.08) 100%);
+}
+.pc-hero__conteudo {
+  position: relative;
+  z-index: 2;
+  padding: 96px 0 130px;
+  width: 100%;
+}
+.pc-hero__eyebrow-linha { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+.pc-hero .pc-eyebrow { color: #fff; }
+.pc-hero .pc-eyebrow::before { content: ''; width: 26px; height: 3px; background: var(--pc-vermelho); display: inline-block; }
+.pc-hero h1 {
+  color: #fff;
+  max-width: 720px;
+  margin: 0 0 20px;
+}
+.pc-hero h1 em {
+  display: block;
+  font-style: normal;
+  color: var(--pc-vermelho);
+  -webkit-text-stroke: 1px #fff;
+}
+.pc-hero p { color: rgba(255,255,255,0.82); font-size: 1.12rem; max-width: 460px; }
+.pc-hero__acoes { display: flex; gap: 16px; flex-wrap: wrap; margin-top: 22px; }
+
+/* Selo circular no canto — construído em CSS, conteúdo próprio da marca. */
+.pc-hero__selo {
+  position: absolute;
+  top: 40px; right: 5%;
+  z-index: 3;
+  width: 128px; height: 128px;
+  border-radius: 50%;
+  background: var(--pc-vermelho);
+  border: 3px solid #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 12px;
+}
+.pc-hero__selo span {
+  font-family: var(--pc-fonte-titulo);
+  font-weight: 700;
+  font-size: 0.82rem;
+  line-height: 1.15;
+  color: #fff;
+  text-transform: uppercase;
+}
+@media (max-width: 900px) { .pc-hero__selo { display: none; } }
+
+/* Tira de miniaturas sobreposta à borda inferior do hero — mesma lógica
+   de "fotos escapando" da composição de referência. */
+.pc-hero__miniaturas {
+  position: absolute;
+  left: 24px; bottom: -34px;
+  z-index: 4;
+  display: flex;
+  gap: 10px;
+}
+.pc-hero__miniatura {
+  width: 84px; height: 84px;
+  border-radius: var(--pc-raio-peq);
+  border: 3px solid #fff;
+  background: var(--pc-vermelho-fundo-forte);
+  color: var(--pc-vermelho-escuro);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.62rem;
+  font-weight: 800;
+  text-align: center;
+  padding: 4px;
+  box-shadow: 0 6px 16px rgba(0,0,0,0.25);
+  overflow: hidden;
+}
+.pc-hero__miniatura img { width: 100%; height: 100%; object-fit: cover; border-radius: calc(var(--pc-raio-peq) - 3px); }
+@media (max-width: 640px) {
+  .pc-hero__miniaturas { display: none; }
+}
+
+/* ============================ SEÇÃO GENÉRICA ============================= */
+.pc-secao { padding: 96px 0; }
+.pc-secao--areia { background: var(--pc-cinza-claro); }
+.pc-secao--preta { background: var(--pc-preto); color: #fff; }
+.pc-cabecalho { max-width: 640px; margin: 0 0 20px; }
+.pc-cabecalho--centro { margin-left: auto; margin-right: auto; text-align: center; }
+.pc-cabecalho p { color: var(--pc-texto-suave); font-size: 1.02rem; }
+.pc-secao--preta .pc-cabecalho p { color: rgba(255,255,255,0.72); }
+.pc-secao--preta h2 { color: #fff; }
+
+/* ---------------------------- Seleção de público (Produtos) ---------------------------- */
+.pc-opcoes {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+  margin-bottom: 56px;
+}
+@media (max-width: 700px) { .pc-opcoes { grid-template-columns: 1fr; } }
+.pc-opcao {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 20px 24px;
+  border-radius: 999px;
+  border: 2px solid var(--pc-linha);
+  background: var(--pc-branco);
+  transition: border-color 0.15s ease, transform 0.15s ease;
+}
+.pc-opcao:hover { border-color: var(--pc-vermelho); transform: translateY(-2px); text-decoration: none; }
+.pc-opcao--preenchida {
+  background: var(--pc-vermelho);
+  border-color: var(--pc-vermelho);
+  color: #fff;
+}
+.pc-opcao--preenchida:hover { background: var(--pc-vermelho-escuro); border-color: var(--pc-vermelho-escuro); }
+.pc-opcao__icone {
+  width: 48px; height: 48px;
+  border-radius: 50%;
+  background: var(--pc-vermelho-fundo);
+  color: var(--pc-vermelho);
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.pc-opcao--preenchida .pc-opcao__icone { background: rgba(255,255,255,0.2); color: #fff; }
+.pc-opcao__icone svg { width: 22px; height: 22px; }
+.pc-opcao__texto strong { display: block; font-size: 0.92rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.02em; margin-bottom: 2px; }
+.pc-opcao__texto span { font-size: 0.85rem; opacity: 0.85; }
+
+/* ---------------------------- Produtos (cards estilo carrossel) ---------------------------- */
+.pc-produtos-carrossel {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.pc-produtos-grade {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(220px, 1fr);
+  gap: 22px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  padding-bottom: 6px;
+  flex: 1;
+}
+.pc-produtos-grade::-webkit-scrollbar { height: 6px; }
+.pc-produtos-grade::-webkit-scrollbar-thumb { background: var(--pc-linha); border-radius: 999px; }
+
+.pc-card {
+  scroll-snap-align: start;
+  background: var(--pc-branco);
+  border-radius: var(--pc-raio);
+  border: 1px solid var(--pc-linha);
+  overflow: hidden;
+  box-shadow: 0 8px 24px rgba(20,16,15,0.06);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.pc-card:hover { transform: translateY(-4px); box-shadow: 0 14px 30px rgba(20,16,15,0.12); }
+.pc-card__imagem { aspect-ratio: 1/1; background: var(--pc-vermelho-fundo); display: flex; align-items: center; justify-content: center; overflow: hidden; }
+.pc-card__imagem span { color: var(--pc-vermelho-escuro); font-size: 0.78rem; font-weight: 700; text-align: center; padding: 10px; }
+.pc-card__imagem img { width: 100%; height: 100%; object-fit: cover; }
+.pc-card__corpo { padding: 18px 18px 20px; }
+.pc-card__titulo { display: block; font-family: var(--pc-fonte-titulo); font-size: 1.08rem; font-weight: 700; color: var(--pc-preto); margin-bottom: 6px; }
+.pc-card p { color: var(--pc-texto-suave); font-size: 0.86rem; margin: 0 0 10px; }
+.pc-card__link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: 800;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  color: var(--pc-vermelho);
+}
+.pc-card__link:hover { text-decoration: none; color: var(--pc-vermelho-escuro); }
+
+.pc-seta {
+  width: 44px; height: 44px;
+  border-radius: 50%;
+  background: var(--pc-vermelho);
+  color: #fff;
+  border: none;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background-color 0.15s ease;
+}
+.pc-seta:hover { background: var(--pc-vermelho-escuro); }
+.pc-seta svg { width: 18px; height: 18px; }
+@media (max-width: 700px) { .pc-seta { display: none; } }
+
+/* ------------------------------- Sobre / História ------------------------------- */
+/* Bloco vermelho profundo com imagem em corte diagonal — mesma lógica de
+   composição assimétrica da referência (foto cortada + texto + CTA com selo). */
+.pc-sobre {
+  position: relative;
+  background: var(--pc-vermelho-profundo);
+  color: #fff;
+  overflow: hidden;
+  padding: 0;
+}
+.pc-sobre__grade {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: center;
+  min-height: 460px;
+}
+@media (max-width: 860px) { .pc-sobre__grade { grid-template-columns: 1fr; min-height: 0; } }
+/* SUBSTITUIR: foto real da fachada, forno ou produção da padaria. */
+.pc-sobre__imagem {
+  position: relative;
+  height: 100%;
+  min-height: 320px;
+  background: linear-gradient(160deg, rgba(0,0,0,0.55), rgba(245,0,11,0.28)), repeating-linear-gradient(45deg, rgba(255,255,255,0.05) 0 2px, transparent 2px 22px);
+  clip-path: polygon(0 0, 100% 0, 82% 100%, 0% 100%);
+  display: flex; align-items: center; justify-content: center;
+  overflow: hidden;
+}
+@media (max-width: 860px) { .pc-sobre__imagem { clip-path: none; } }
+.pc-sobre__imagem span { color: rgba(255,255,255,0.75); font-size: 0.85rem; text-align: center; padding: 24px; font-weight: 600; max-width: 260px; position: relative; z-index: 1; }
+.pc-sobre__imagem img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: 0; }
+.pc-sobre__texto { padding: 64px 48px; }
+@media (max-width: 860px) { .pc-sobre__texto { padding: 48px 24px; } }
+.pc-sobre__texto h2 { color: #fff; }
+.pc-sobre__texto h2 em { font-style: normal; color: var(--pc-vermelho); background: #fff; padding: 0 8px; border-radius: 4px; }
+.pc-sobre__texto p { color: rgba(255,255,255,0.82); max-width: 440px; }
+.pc-sobre__texto .pc-btn { margin-top: 10px; }
+
+/* ------------------------------- Galeria ------------------------------- */
+.pc-galeria-grade {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  grid-auto-rows: 150px;
+  gap: 8px;
+}
+.pc-galeria-grade > div:nth-child(1) { grid-column: span 2; grid-row: span 2; }
+.pc-galeria-grade > div:nth-child(4) { grid-column: span 2; }
+@media (max-width: 640px) {
+  .pc-galeria-grade { grid-template-columns: repeat(2, 1fr); grid-auto-rows: 120px; }
+  .pc-galeria-grade > div:nth-child(4) { grid-column: span 1; }
+}
+.pc-galeria-item {
+  background: rgba(255,255,255,0.04);
+  color: rgba(255,255,255,0.5);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.74rem; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase;
+  text-align: center; padding: 8px;
+  border-radius: var(--pc-raio-peq);
+  border: 1px solid rgba(245,0,11,0.3);
+  overflow: hidden;
+}
+.pc-galeria-item img { width: 100%; height: 100%; object-fit: cover; }
+
+/* -------------------------------- Info -------------------------------- */
+.pc-info { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; text-align: center; }
+@media (max-width: 700px) { .pc-info { grid-template-columns: 1fr; } }
+.pc-info-item { border: 1px solid var(--pc-linha); border-radius: var(--pc-raio); padding: 30px 20px; background: var(--pc-branco); }
+.pc-info-item strong { display: block; font-family: var(--pc-fonte-titulo); font-size: 1.05rem; font-weight: 700; text-transform: uppercase; margin-bottom: 8px; color: var(--pc-vermelho); }
+.pc-info-item span { color: var(--pc-texto-suave); font-size: 0.9rem; }
+
+/* ------------------------------ Voltar para a Cristal ------------------------------ */
+.pc-voltar-faixa {
+  background: var(--pc-branco);
+  border-top: 1px solid var(--pc-linha);
+  padding: 36px 0;
+  text-align: center;
+}
+.pc-voltar-faixa p { color: var(--pc-texto-suave); margin-bottom: 16px; font-weight: 600; }
+
+/* ================================ RODAPÉ ================================ */
+.pc-footer { background: var(--pc-vermelho); color: rgba(255,255,255,0.85); font-size: 0.9rem; }
+.pc-footer a { color: rgba(255,255,255,0.85); }
+.pc-footer a:hover { color: #fff; }
+.pc-footer__topo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  flex-wrap: wrap;
+  padding: 32px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.2);
+}
+.pc-footer__marca { display: flex; align-items: center; gap: 14px; }
+.pc-footer__logo-imagem {
+  height: 40px;
+  width: auto;
+  max-width: 160px;
+  object-fit: contain;
+  display: block;
+  background: var(--pc-branco);
+  border-radius: 8px;
+  padding: 5px 9px;
+}
+.pc-footer__marca-texto { display: flex; flex-direction: column; }
+.pc-footer__marca-texto strong { font-family: var(--pc-fonte-titulo); font-weight: 700; font-size: 1.15rem; text-transform: uppercase; color: #fff; }
+.pc-footer__marca-texto em { font-style: italic; font-family: var(--pc-fonte-titulo); font-size: 0.85rem; color: rgba(255,255,255,0.8); }
+.pc-footer__nav { display: flex; gap: 20px; flex-wrap: wrap; }
+.pc-footer__nav a { font-weight: 700; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.03em; }
+.pc-footer__contato-pills { display: flex; gap: 10px; flex-wrap: wrap; }
+.pc-footer__pill {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 10px 16px;
+  border-radius: 999px;
+  border: 1.5px solid rgba(255,255,255,0.5);
+  font-weight: 700; font-size: 0.8rem;
+}
+.pc-footer__pill:hover { background: rgba(255,255,255,0.12); text-decoration: none; }
+.pc-footer__pill svg { width: 14px; height: 14px; }
+
+.pc-footer__grade {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr 1fr;
+  gap: 32px;
+  padding: 36px 0;
+}
+@media (max-width: 780px) { .pc-footer__grade { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 480px) { .pc-footer__grade { grid-template-columns: 1fr; } }
+.pc-footer__coluna h4 { color: #fff; font-family: var(--pc-fonte-titulo); font-size: 1rem; text-transform: uppercase; margin-bottom: 14px; }
+.pc-footer__coluna ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+
+.pc-footer__barra {
+  border-top: 1px solid rgba(255,255,255,0.2);
+  padding: 18px 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  font-size: 0.8rem;
+  color: rgba(255,255,255,0.75);
+}
+.pc-footer__barra a { color: rgba(255,255,255,0.75); }
+.pc-footer__barra a:hover { color: #fff; }
+.pc-footer__barra-links { display: flex; gap: 16px; flex-wrap: wrap; }
+
+/* =========================== RESPONSIVIDADE GERAL =========================== */
+@media (max-width: 900px) {
+  .pc-hero { min-height: 480px; }
+}
+@media (max-width: 640px) {
+  body.pc-corpo { font-size: 15.5px; }
+  .pc-hero { min-height: 420px; }
+  .pc-hero__foto { object-position: center 30%; }
+  .pc-hero__conteudo { padding: 48px 0 72px; }
+  .pc-secao { padding: 56px 0; }
+  .pc-btn--grande { padding: 15px 24px; font-size: 0.86rem; }
+  .pc-container { padding: 0 16px; }
+  .pc-header__logo-imagem { height: 30px; max-width: 120px; }
+  .pc-footer__logo-imagem { height: 30px; }
+}

@@ -1,0 +1,550 @@
+/* =========================================================================
+   CRISTAL FLORICULTURA — Painel Administrativo
+   Interface própria do painel, deliberadamente diferente da loja pública:
+   sidebar clara e neutra, com o verde de marca (#3B5943) usado apenas como
+   detalhe — estado ativo, ícones, bordas finas — nunca como bloco de cor
+   dominante. Cards minimalistas, tabelas elegantes, sombras discretas,
+   cantos pouco arredondados, sem gradientes. Reaproveita as variáveis de
+   cor definidas em css/style.css.
+   ========================================================================= */
+
+:root {
+  --admin-fundo: #FAFAF8;
+  --admin-superficie: #FFFFFF;
+  --admin-linha: #E7E5E0;
+  --admin-texto: #201F1C;
+  --admin-texto-suave: #75726C;
+  --admin-sidebar-fundo: #FFFFFF;
+  --admin-sidebar-texto: #55524C;
+  --admin-sidebar-ativo-fundo: var(--verde-050, #EEF2EF);
+  --admin-sidebar-ativo-texto: var(--verde-900, #223228);
+  --admin-raio: 3px;
+  --admin-sombra: 0 1px 2px rgba(20,20,18,0.04), 0 1px 8px rgba(20,20,18,0.05);
+}
+
+.admin-body {
+  background: var(--admin-fundo);
+  min-height: 100vh;
+  font-family: var(--fonte-base);
+  color: var(--admin-texto);
+}
+
+.admin-shell {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  min-height: 100vh;
+}
+
+.admin-topbar-mobile { display: none; }
+
+@media (max-width: 860px) {
+  .admin-shell { grid-template-columns: 1fr; }
+
+  /* Em vez de simplesmente esconder o menu (o que deixava o admin sem
+     navegação nenhuma no celular), ele vira uma gaveta que desliza da
+     esquerda, aberta pelo botão hambúrguer no topo. */
+  .admin-topbar-mobile {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 16px;
+    background: var(--admin-superficie);
+    border-bottom: 1px solid var(--admin-linha);
+    color: var(--admin-texto);
+    position: sticky;
+    top: 0;
+    z-index: 60;
+  }
+  .admin-topbar-mobile__logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 700;
+    color: var(--admin-texto);
+  }
+  .admin-topbar-mobile__logo img { width: 30px; height: 30px; border-radius: 50%; }
+  .admin-menu-toggle {
+    background: var(--admin-fundo);
+    border: 1.5px solid var(--admin-linha);
+    color: var(--admin-texto);
+    border-radius: var(--admin-raio);
+    width: 42px;
+    height: 42px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .admin-sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 270px;
+    z-index: 70;
+    transform: translateX(-100%);
+    transition: transform 0.2s ease;
+    box-shadow: 0 0 0 1px var(--admin-linha), var(--admin-sombra);
+  }
+  .admin-sidebar.aberta { transform: translateX(0); }
+
+  .admin-sidebar-fundo {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(20, 20, 18, 0.35);
+    z-index: 65;
+  }
+  .admin-sidebar-fundo.visivel { display: block; }
+
+  .admin-main { padding: 20px 16px; }
+  .admin-topo { flex-direction: column; align-items: flex-start; }
+}
+
+/* ------------------------------ Sidebar ------------------------------ */
+.admin-sidebar {
+  background: var(--admin-sidebar-fundo);
+  border-right: 1px solid var(--admin-linha);
+  color: var(--admin-sidebar-texto);
+  padding: 22px 0;
+  display: flex;
+  flex-direction: column;
+}
+.admin-sidebar__logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 20px 20px;
+  border-bottom: 1px solid var(--admin-linha);
+  margin-bottom: 12px;
+}
+.admin-sidebar__logo img { width: 32px; height: 32px; border-radius: 50%; }
+.admin-sidebar__logo span {
+  font-family: var(--fonte-titulo);
+  font-weight: 600;
+  font-size: 0.98rem;
+  letter-spacing: 0.01em;
+  color: var(--admin-texto);
+  line-height: 1.25;
+}
+
+.admin-sidebar__nav {
+  list-style: none;
+  margin: 0;
+  padding: 0 12px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.admin-sidebar__nav a {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 10px 12px;
+  color: var(--admin-sidebar-texto);
+  font-weight: 600;
+  font-size: 0.87rem;
+  border-radius: var(--admin-raio);
+  border-left: 2px solid transparent;
+}
+.admin-sidebar__nav a svg { width: 17px; height: 17px; flex-shrink: 0; opacity: 0.8; }
+.admin-sidebar__nav a:hover {
+  color: var(--admin-texto);
+  background: var(--admin-fundo);
+  text-decoration: none;
+}
+.admin-sidebar__nav a.ativo {
+  color: var(--admin-sidebar-ativo-texto);
+  background: var(--admin-sidebar-ativo-fundo);
+  border-left-color: var(--verde-700, #3B5943);
+  text-decoration: none;
+}
+.admin-sidebar__nav a.ativo svg { opacity: 1; }
+
+.admin-sidebar__rodape {
+  padding: 14px 20px 0;
+  margin-top: 10px;
+  border-top: 1px solid var(--admin-linha);
+}
+.admin-sidebar__rodape .btn-secundario {
+  color: var(--admin-texto);
+  border-color: var(--admin-linha);
+}
+.admin-sidebar__rodape .btn-secundario:hover { background: var(--admin-fundo); }
+
+/* ------------------------------ Área principal ------------------------------ */
+.admin-main {
+  padding: 30px 32px;
+  min-width: 0; /* corrige um bug clássico do CSS Grid: sem isso, esta
+    coluna não consegue encolher menos que o conteúdo mais largo dela (ex:
+    uma tabela), mesmo com "rolar horizontal" configurado dentro dela —
+    o resultado era a PÁGINA INTEIRA ficando larga demais no celular. */
+  background: var(--admin-fundo);
+}
+.admin-topo {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 26px;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+.admin-topo h1 { font-family: var(--fonte-titulo); font-size: 1.4rem; color: var(--admin-texto); }
+
+.admin-cards-resumo {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1px;
+  background: var(--admin-linha);
+  border: 1px solid var(--admin-linha);
+  margin-bottom: 28px;
+}
+.admin-card {
+  background: var(--admin-superficie);
+  padding: 20px 22px;
+}
+.admin-card__label {
+  font-size: 0.76rem;
+  color: var(--admin-texto-suave);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.admin-card__valor {
+  font-family: var(--fonte-titulo);
+  font-size: 1.55rem;
+  font-weight: 600;
+  margin-top: 6px;
+  color: var(--admin-texto);
+}
+.admin-card__valor--positivo { color: var(--cor-sucesso); }
+.admin-card__valor--negativo { color: var(--cor-erro); }
+
+.admin-painel {
+  background: var(--admin-superficie);
+  border: 1px solid var(--admin-linha);
+  border-radius: var(--admin-raio);
+  overflow: hidden;
+}
+.admin-painel__cabecalho {
+  padding: 16px 22px;
+  border-bottom: 1px solid var(--admin-linha);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.admin-painel__cabecalho h3 { font-family: var(--fonte-titulo); font-size: 1.05rem; color: var(--admin-texto); }
+
+.sub-abas-pedidos {
+  list-style: none;
+  margin: 0;
+  padding: 0 22px;
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  border-bottom: 1px solid var(--admin-linha);
+}
+.sub-abas-pedidos a {
+  display: inline-block;
+  padding: 12px 12px;
+  color: var(--admin-texto-suave);
+  font-weight: 600;
+  font-size: 0.87rem;
+  white-space: nowrap;
+  border-bottom: 2px solid transparent;
+}
+.sub-abas-pedidos a:hover,
+.sub-abas-pedidos a.ativo {
+  color: var(--admin-texto);
+  border-bottom-color: var(--verde-700, #3B5943);
+  text-decoration: none;
+}
+
+table.tabela-admin {
+  width: 100%;
+  border-collapse: collapse;
+}
+table.tabela-admin th,
+table.tabela-admin td {
+  padding: 13px 22px;
+  text-align: left;
+  border-bottom: 1px solid var(--admin-linha);
+  font-size: 0.89rem;
+}
+table.tabela-admin th {
+  color: var(--admin-texto-suave);
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 0.7rem;
+  letter-spacing: 0.05em;
+  background: var(--admin-fundo);
+}
+table.tabela-admin tbody tr:hover { background: var(--admin-fundo); }
+
+.badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: capitalize;
+}
+.badge-pendente { background: #FBF0DA; color: #8A6417; }
+.badge-pago { background: var(--verde-050, #EEF2EF); color: var(--verde-900, #223228); }
+.badge-enviado { background: #E6ECF7; color: #33538D; }
+.badge-entregue { background: #E4F1E6; color: #2E6B3B; }
+.badge-cancelado { background: #F7E6E4; color: #A23B32; }
+
+.modal-fundo {
+  position: fixed;
+  inset: 0;
+  background: rgba(20, 20, 18, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  z-index: 100;
+}
+.modal-caixa {
+  background: var(--admin-superficie);
+  border: 1px solid var(--admin-linha);
+  border-radius: var(--admin-raio);
+  padding: 26px;
+  width: 100%;
+  max-width: 560px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: var(--admin-sombra);
+}
+
+.tela-login {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--admin-fundo);
+  padding: 24px;
+}
+.tela-login__caixa {
+  background: var(--admin-superficie);
+  border: 1px solid var(--admin-linha);
+  border-radius: var(--admin-raio);
+  padding: 40px;
+  width: 100%;
+  max-width: 420px;
+  box-shadow: var(--admin-sombra);
+}
+.tela-login__logo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+.tela-login__logo img { width: 56px; height: 56px; border-radius: 50%; }
+
+.acoes-linha {
+  display: flex;
+  gap: 8px;
+}
+.link-acao {
+  background: none;
+  border: none;
+  color: var(--admin-texto);
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 0.83rem;
+  padding: 6px 10px;
+}
+.link-acao--perigo { color: var(--cor-erro); }
+
+/* Botões de ação nas tabelas (Editar, Excluir) ficavam baixos demais pra
+   tocar confortavelmente no celular — aumenta só a área de toque aqui,
+   sem alterar a aparência no desktop. */
+@media (max-width: 860px) {
+  .link-acao {
+    padding: 11px 12px;
+    font-size: 0.88rem;
+  }
+}
+
+.galeria-admin-lista {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+  gap: 12px;
+  margin-top: 8px;
+}
+.galeria-admin-item {
+  position: relative;
+  border-radius: var(--admin-raio);
+  border: 1px solid var(--admin-linha);
+  overflow: hidden;
+}
+.galeria-admin-item img { width: 100%; aspect-ratio: 3/4; object-fit: cover; display: block; }
+.galeria-admin-item__remover {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(20, 20, 18, 0.65);
+  color: #fff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.galeria-admin-item__remover svg { width: 11px; height: 11px; }
+.galeria-admin-item__remover:hover { background: var(--cor-erro); }
+
+/* ------------------------------ Botão de upload de fotos ------------------------------ */
+.upload-fotos {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+.upload-fotos__botao {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 11px 18px;
+  border: 1.5px dashed var(--admin-linha);
+  border-radius: var(--admin-raio);
+  background: var(--admin-fundo);
+  color: var(--admin-texto);
+  font-weight: 600;
+  font-size: 0.88rem;
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+.upload-fotos__botao:hover {
+  background: var(--verde-050, #EEF2EF);
+  border-color: var(--verde-700, #3B5943);
+}
+.upload-fotos__icone { font-size: 1.1rem; }
+.upload-fotos__status {
+  font-size: 0.83rem;
+  color: var(--admin-texto-suave);
+}
+.upload-fotos__status--ativo {
+  color: var(--admin-texto);
+  font-weight: 600;
+}
+
+/* ------------------------------ Tags de cor/tamanho (admin) ------------------------------ */
+.lista-tags-admin {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  min-height: 20px;
+}
+.tag-admin {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border: 1px solid var(--admin-linha);
+  border-radius: 999px;
+  font-size: 0.83rem;
+  background: var(--admin-superficie);
+}
+.tag-admin__bolinha {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 1px solid rgba(0,0,0,0.15);
+  display: inline-block;
+}
+.tag-admin button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--admin-texto-suave);
+  font-size: 0.75rem;
+  padding: 0;
+  line-height: 1;
+}
+.tag-admin button:hover { color: var(--cor-erro); }
+
+/* ------------------------------ Cards de cor (admin) ------------------------------ */
+.cards-cores-admin {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 14px;
+}
+.card-cor-admin {
+  border: 1px solid var(--admin-linha);
+  border-radius: var(--admin-raio);
+  padding: 12px;
+  background: var(--admin-superficie);
+  display: flex;
+  flex-direction: column;
+}
+.card-cor-admin__cabecalho {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.card-cor-admin__cabecalho strong {
+  flex: 1;
+  font-size: 0.9rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.card-cor-admin__bolinha {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 1px solid rgba(0,0,0,0.15);
+  flex-shrink: 0;
+}
+.card-cor-admin__remover {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--admin-texto-suave);
+  font-size: 0.85rem;
+  padding: 2px 4px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+.card-cor-admin__remover:hover { color: var(--cor-erro); }
+.card-cor-admin__foto {
+  aspect-ratio: 3/4;
+  border-radius: 3px;
+  overflow: hidden;
+  background: var(--admin-fundo);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 8px;
+}
+.card-cor-admin__foto img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.card-cor-admin__sem-foto {
+  color: var(--admin-texto-suave);
+  font-size: 0.78rem;
+  text-align: center;
+  padding: 8px;
+}
+.card-cor-admin__botao-foto {
+  width: 100%;
+  justify-content: center;
+  font-size: 0.8rem;
+  padding: 8px 10px;
+}
+
+/* ------------------------------ Sino de notificações ------------------------------ */
+#sininho-notificacoes {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}

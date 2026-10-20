@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<link rel="icon" type="image/png" href="../assets/favicon.png">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cristal Floricultura Admin — Produtos</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/style.css">
+<link rel="stylesheet" href="css/admin.css">
+</head>
+<body class="admin-body">
+
+<div class="admin-shell">
+  <aside class="admin-sidebar">
+    <div class="admin-sidebar__logo">
+      <img src="../assets/logo.png" alt="Logo Cristal Floricultura">
+      <span>Cristal Floricultura Admin</span>
+    </div>
+    <ul class="admin-sidebar__nav" id="admin-nav"></ul>
+    <div class="admin-sidebar__rodape">
+      <p class="texto-suave" style="font-size:0.85rem; margin-bottom:8px;">Olá, <strong id="admin-nome"></strong></p>
+      <button class="btn btn-secundario btn-bloco" id="btn-sair">Sair</button>
+    </div>
+  </aside>
+
+  <main class="admin-main">
+    <div class="admin-topo">
+      <div>
+        <h1 style="margin-bottom:2px;">Produtos</h1>
+        <p class="texto-suave">Gerencie o catálogo, preços e estoque</p>
+      </div>
+      <button class="btn btn-primario btn-grande" id="btn-novo-produto">+ Novo produto</button>
+    </div>
+
+    <div id="alerta-produtos"></div>
+
+    <div class="admin-painel">
+      <div style="overflow-x:auto;">
+        <table class="tabela-admin">
+          <thead>
+            <tr>
+              <th>Produto</th><th>Categoria</th><th>Custo</th><th>Preço</th>
+              <th>Preço por qtd.</th><th>Estoque</th><th>Flores</th><th>Status</th><th></th>
+            </tr>
+          </thead>
+          <tbody id="tabela-produtos">
+            <tr><td colspan="8">Carregando...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Modal de criação/edição de produto -->
+<div class="modal-fundo" id="modal-produto" style="display:none;">
+  <div class="modal-caixa">
+    <h2 id="modal-titulo">Novo produto</h2>
+    <form id="form-produto">
+      <input type="hidden" id="produto_id">
+
+      <div class="campo">
+        <label for="p_nome">Nome do produto</label>
+        <input type="text" id="p_nome" required>
+      </div>
+
+      <div class="campo">
+        <label for="p_categoria">Categoria</label>
+        <select id="p_categoria" required></select>
+      </div>
+
+      <div class="campo">
+        <label for="p_descricao">Descrição</label>
+        <textarea id="p_descricao" rows="3" placeholder='Ex: "A partir de 12 unidades, o preço unitário cai para R$ 35,00."'></textarea>
+      </div>
+
+      <div class="campo-linha">
+        <div class="campo">
+          <label for="p_custo">Preço de custo (R$)</label>
+          <input type="number" id="p_custo" step="0.01" min="0" required>
+        </div>
+        <div class="campo">
+          <label for="p_varejo">Preço (R$)</label>
+          <input type="number" id="p_varejo" step="0.01" min="0" required>
+        </div>
+      </div>
+
+      <div class="campo-linha">
+        <div class="campo">
+          <label for="p_atacado">Preço com desconto por quantidade (R$)</label>
+          <input type="number" id="p_atacado" step="0.01" min="0">
+        </div>
+        <div class="campo">
+          <label for="p_desconto">Desconto por quantidade (%)</label>
+          <input type="number" id="p_desconto" step="0.01" min="0" max="100">
+        </div>
+      </div>
+
+      <div class="campo-linha">
+        <div class="campo">
+          <label for="p_qtd_minima">Qtd. mínima para desconto</label>
+          <input type="number" id="p_qtd_minima" min="1" value="50">
+        </div>
+        <div class="campo">
+          <label for="p_estoque">Estoque (unidades)</label>
+          <input type="number" id="p_estoque" min="0" required>
+        </div>
+      </div>
+
+      <div class="campo">
+        <label>Este produto contém flores?</label>
+        <p class="texto-suave" style="font-size:0.82rem; margin-top:-4px; margin-bottom:8px;">
+          Decide sozinho a forma de entrega do pedido inteiro: se marcado "Sim", pedidos com este produto usam a entrega local por cidade em vez do Melhor Envio. Escolha manualmente — nunca é inferido do nome ou da categoria.
+        </p>
+        <div class="campo-linha" style="align-items:center;">
+          <label style="display:flex; align-items:center; gap:6px; font-weight:400;">
+            <input type="radio" name="p_possui_flores" id="p_possui_flores_sim" value="sim" style="width:auto;"> Sim
+          </label>
+          <label style="display:flex; align-items:center; gap:6px; font-weight:400;">
+            <input type="radio" name="p_possui_flores" id="p_possui_flores_nao" value="nao" style="width:auto;" checked> Não
+          </label>
+        </div>
+      </div>
+
+      <label>Peso e dimensões da embalagem</label>
+      <div class="campo-linha">
+        <div class="campo">
+          <label for="p_peso" style="font-weight:400; font-size:0.85rem;">Peso (kg)</label>
+          <input type="number" id="p_peso" min="0.05" step="0.01" value="0.3">
+        </div>
+        <div class="campo">
+          <label for="p_altura" style="font-weight:400; font-size:0.85rem;">Altura (cm)</label>
+          <input type="number" id="p_altura" min="1" value="5">
+        </div>
+      </div>
+      <div class="campo-linha">
+        <div class="campo">
+          <label for="p_largura" style="font-weight:400; font-size:0.85rem;">Largura (cm)</label>
+          <input type="number" id="p_largura" min="1" value="25">
+        </div>
+        <div class="campo">
+          <label for="p_comprimento" style="font-weight:400; font-size:0.85rem;">Comprimento (cm)</label>
+          <input type="number" id="p_comprimento" min="1" value="35">
+        </div>
+      </div>
+
+      <div class="campo">
+        <label>Fotos do produto</label>
+        <div class="upload-fotos">
+          <label for="p_imagem" class="upload-fotos__botao">
+            <span class="upload-fotos__icone">Fotos</span>
+            Escolher fotos
+          </label>
+          <input type="file" id="p_imagem" accept="image/png,image/jpeg,image/webp,image/gif" multiple hidden>
+          <span class="upload-fotos__status" id="upload-fotos-status">Nenhuma foto selecionada</span>
+        </div>
+        <p class="texto-suave" style="font-size:0.8rem; margin-top:4px;">
+          Você pode selecionar várias fotos de uma vez (segure Ctrl ou Shift para escolher mais de uma).
+          Ao editar um produto, novas fotos são ADICIONADAS às já existentes. Se o produto tiver cores, uma
+          forma mais fácil de adicionar foto por cor é usar os cards de cor logo abaixo.
+        </p>
+      </div>
+
+      <div id="secao-variacoes" style="display:none;">
+        <hr style="margin:24px 0; border:none; border-top:1px solid var(--cor-linha);">
+
+        <label>Cores do produto</label>
+        <p class="texto-suave" style="font-size:0.82rem; margin-bottom:12px;">
+          Cada cor tem sua própria foto. Quando a pessoa escolher essa cor na loja, essa foto aparece automaticamente no lugar da foto principal.
+        </p>
+        <div id="cards-cores" class="cards-cores-admin"></div>
+        <div id="alerta-cores" style="margin-top:10px;"></div>
+        <div class="acoes-linha" style="margin-top:14px; flex-wrap:wrap;">
+          <input type="text" id="nova_cor_nome" placeholder="Nome da nova cor (ex: Verde)" style="flex:1; min-width:160px; padding:10px; border:1.5px solid var(--cor-linha); border-radius:4px; font-family:inherit;">
+          <input type="color" id="nova_cor_hex" value="#5EC5B5" title="Cor de referência (aparece como bolinha)" style="width:44px; height:40px; border:1.5px solid var(--cor-linha); border-radius:4px; padding:2px; cursor:pointer;">
+          <button type="button" class="btn btn-secundario" id="btn-add-cor">+ Adicionar cor</button>
+        </div>
+
+        <label style="display:block; margin-top:26px;">Tamanhos disponíveis</label>
+        <div id="lista-tamanhos" class="lista-tags-admin"></div>
+        <div class="acoes-linha" style="margin-top:10px;">
+          <input type="text" id="novo_tamanho" placeholder="Ex: PP, P, M, G, GG" style="flex:1; padding:10px; border:1.5px solid var(--cor-linha); border-radius:4px; font-family:inherit;">
+          <button type="button" class="btn btn-secundario" id="btn-add-tamanho">+ Adicionar tamanho</button>
+        </div>
+
+        <div id="secao-estoque-variacoes" style="margin-top:26px; display:none;">
+          <label>Estoque por cor e tamanho</label>
+          <p class="texto-suave" style="font-size:0.82rem; margin-bottom:10px;">
+            Preencha quantas unidades você tem de cada combinação. Deixe em branco ou 0 quando não tiver aquela combinação.
+          </p>
+          <div style="overflow-x:auto;">
+            <table class="tabela-admin" id="tabela-estoque-variacoes"></table>
+          </div>
+          <button type="button" class="btn btn-primario" id="btn-salvar-estoque" style="margin-top:14px;">Salvar estoque</button>
+          <div id="alerta-estoque" style="margin-top:10px;"></div>
+        </div>
+
+        <div id="fotos-gerais-secao" style="margin-top:26px; display:none;">
+          <label>Outras fotos do produto (sem cor específica)</label>
+          <p class="texto-suave" style="font-size:0.8rem; margin-bottom:6px;">
+            Essas fotos aparecem quando nenhuma cor está selecionada na loja (ex: a foto principal do produto).
+          </p>
+          <div id="fotos-gerais-lista" class="galeria-admin-lista"></div>
+        </div>
+      </div>
+      <p class="texto-suave" id="aviso-salve-primeiro" style="font-size:0.85rem; margin-top:16px;">
+        Salve o produto primeiro; depois de criado, você pode voltar aqui e editar pra adicionar cores e tamanhos.
+      </p>
+
+      <div id="alerta-modal"></div>
+
+      <div class="acoes-linha" style="margin-top:20px;">
+        <button type="submit" class="btn btn-primario">Salvar produto</button>
+        <button type="button" class="btn btn-secundario" id="btn-cancelar-modal">Cancelar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script src="../js/api.js"></script>
+<script src="../js/cart.js"></script>
+<script src="js/admin.js"></script>
+<script>
+exigirLoginAdmin();
+montarSidebarAdmin('produtos');
+
+let categoriasCache = [];
+
+async function carregarCategoriasSelect() {
+  categoriasCache = await apiFetch('/categorias');
+  const select = document.getElementById('p_categoria');
+  select.innerHTML = categoriasCache
+    .map((c) => `<option value="${c.id}">${escapeHtml(c.nome)}</option>`)
+    .join('');
+}
+
+async function carregarProdutos() {
+  const tbody = document.getElementById('tabela-produtos');
+  try {
+    const produtos = await apiFetchAdmin('/produtos/admin/all');
+
+    if (produtos.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="9">Nenhum produto cadastrado ainda.</td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = produtos.map((p) => `
+      <tr>
+        <td>${escapeHtml(p.nome)}</td>
+        <td>${escapeHtml(p.categoria)}</td>
+        <td>${formatarPreco(p.preco_custo)}</td>
+        <td>${formatarPreco(p.preco_varejo)}</td>
+        <td>${p.preco_atacado ? formatarPreco(p.preco_atacado) : '—'}</td>
+        <td>${p.estoque}</td>
+        <td>${p.possui_flores ? '<span class="badge badge-entregue">Sim</span>' : '<span class="badge badge-cancelado">Não</span>'}</td>
+        <td>${p.ativo ? '<span class="badge badge-entregue">Ativo</span>' : '<span class="badge badge-cancelado">Inativo</span>'}</td>
+        <td>
+          <div class="acoes-linha">
+            <button class="link-acao" data-editar="${p.id}">Editar</button>
+            <button class="link-acao link-acao--perigo" data-remover="${p.id}">Remover</button>
+          </div>
+        </td>
+      </tr>
+    `).join('');
+
+    tbody.querySelectorAll('[data-editar]').forEach((btn) => {
+      btn.addEventListener('click', () => abrirModalEdicao(btn.dataset.editar));
+    });
+    tbody.querySelectorAll('[data-remover]').forEach((btn) => {
+      btn.addEventListener('click', () => removerProduto(btn.dataset.remover));
+    });
+  } catch (err) {
+    tbody.innerHTML = `<tr><td colspan="9">${escapeHtml(err.message)}</td></tr>`;
+  }
+}
+
+function abrirModalNovo() {
+  document.getElementById('modal-titulo').textContent = 'Novo produto';
+  document.getElementById('form-produto').reset();
+  document.getElementById('produto_id').value = '';
+  document.getElementById('p_qtd_minima').value = 50;
+  document.getElementById('p_possui_flores_nao').checked = true;
+  document.getElementById('alerta-modal').innerHTML = '';
+  document.getElementById('secao-variacoes').style.display = 'none';
+  document.getElementById('aviso-salve-primeiro').style.display = 'block';
+  document.getElementById('upload-fotos-status').textContent = 'Nenhuma foto selecionada';
+  document.getElementById('upload-fotos-status').classList.remove('upload-fotos__status--ativo');
+  document.getElementById('modal-produto').style.display = 'flex';
+}
+
+async function abrirModalEdicao(produtoId) {
+  document.getElementById('modal-titulo').textContent = 'Editar produto';
+  document.getElementById('alerta-modal').innerHTML = '';
+  document.getElementById('upload-fotos-status').textContent = 'Nenhuma foto nova selecionada';
+  document.getElementById('upload-fotos-status').classList.remove('upload-fotos__status--ativo');
+  document.getElementById('secao-variacoes').style.display = 'block';
+  document.getElementById('aviso-salve-primeiro').style.display = 'none';
+  document.getElementById('modal-produto').style.display = 'flex';
+
+  try {
+    const produto = await apiFetchAdmin(`/produtos/admin/${produtoId}`);
+    document.getElementById('produto_id').value = produto.id;
+    document.getElementById('p_nome').value = produto.nome;
+    document.getElementById('p_categoria').value = produto.categoria_id;
+    document.getElementById('p_descricao').value = produto.descricao || '';
+    document.getElementById('p_custo').value = produto.preco_custo;
+    document.getElementById('p_varejo').value = produto.preco_varejo;
+    document.getElementById('p_atacado').value = produto.preco_atacado || '';
+    document.getElementById('p_desconto').value = produto.desconto_atacado_percentual || '';
+    document.getElementById('p_qtd_minima').value = produto.quantidade_minima_atacado || 50;
+    document.getElementById('p_estoque').value = produto.estoque;
+    document.getElementById('p_possui_flores_sim').checked = Boolean(produto.possui_flores);
+    document.getElementById('p_possui_flores_nao').checked = !produto.possui_flores;
+    document.getElementById('p_peso').value = produto.peso_kg || 0.3;
+    document.getElementById('p_altura').value = produto.altura_cm || 5;
+    document.getElementById('p_largura').value = produto.largura_cm || 25;
+    document.getElementById('p_comprimento').value = produto.comprimento_cm || 35;
+
+    renderizarCores(produto);
+    renderizarTamanhos(produto.tamanhos || []);
+    renderizarEstoqueVariacoes(produto);
+  } catch (err) {
+    document.getElementById('alerta-modal').innerHTML = `<div class="alerta alerta-erro">${escapeHtml(err.message)}</div>`;
+  }
+}
+
+async function recarregarProdutoNoModal() {
+  const produtoId = document.getElementById('produto_id').value;
+  const produto = await apiFetchAdmin(`/produtos/admin/${produtoId}`);
+  renderizarCores(produto);
+  renderizarTamanhos(produto.tamanhos || []);
+  renderizarEstoqueVariacoes(produto);
+  return produto;
+}
+
+// ---------- Cores (cards visuais, cada uma com sua própria foto) ----------
+
+function renderizarCores(produto) {
+  const cores = produto.cores || [];
+  const imagens = produto.imagens || [];
+  const container = document.getElementById('cards-cores');
+  const fotosGeraisSecao = document.getElementById('fotos-gerais-secao');
+
+  if (cores.length === 0) {
+    container.innerHTML = `<p class="texto-suave" style="font-size:0.85rem;">Nenhuma cor cadastrada ainda — adicione a primeira cor abaixo.</p>`;
+  } else {
+    container.innerHTML = cores.map((c) => {
+      const fotos = imagens.filter((img) => img.cor_id === c.id);
+      const primeiraFoto = fotos[0];
+      return `
+        <div class="card-cor-admin" data-cor-id="${c.id}">
+          <div class="card-cor-admin__cabecalho">
+            <span class="card-cor-admin__bolinha" style="background:${escapeHtml(c.codigo_hex || '#ccc')}"></span>
+            <strong>${escapeHtml(c.nome)}</strong>
+            <button type="button" class="card-cor-admin__remover" data-remover-cor="${c.id}" title="Remover esta cor" aria-label="Remover cor ${escapeHtml(c.nome)}"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><line x1="4" y1="4" x2="20" y2="20"/><line x1="20" y1="4" x2="4" y2="20"/></svg></button>
+          </div>
+          <div class="card-cor-admin__foto">
+            ${primeiraFoto
+              ? `<img src="${BACKEND_ORIGIN}${primeiraFoto.imagem_url}" alt="Foto da cor ${escapeHtml(c.nome)}">`
+              : `<div class="card-cor-admin__sem-foto">Nenhuma foto ainda</div>`
+            }
+          </div>
+          ${fotos.length > 1 ? `<p class="texto-suave" style="font-size:0.75rem; text-align:center; margin:4px 0;">+${fotos.length - 1} foto(s) extra</p>` : ''}
+          <label class="upload-fotos__botao card-cor-admin__botao-foto">
+            <span class="upload-fotos__icone">Fotos</span>
+            ${primeiraFoto ? 'Adicionar outra foto' : 'Selecionar foto'}
+            <input type="file" hidden class="input-foto-cor" data-cor-id="${c.id}" accept="image/png,image/jpeg,image/webp,image/gif">
+          </label>
+          ${fotos.length > 0 ? `<button type="button" class="link-acao link-acao--perigo" style="margin-top:6px; display:block; text-align:center; width:100%;" data-remover-foto-cor="${primeiraFoto.id}">Remover foto desta cor</button>` : ''}
+        </div>
+      `;
+    }).join('');
+
+    // Botão remover cor
+    container.querySelectorAll('[data-remover-cor]').forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        if (!confirm('Remover esta cor? A foto vinculada a ela deixa de aparecer como opção de cor (mas não é apagada, vira uma foto geral do produto).')) return;
+        try {
+          const produtoId = document.getElementById('produto_id').value;
+          await apiFetchAdmin(`/produtos/admin/${produtoId}/cores/${btn.dataset.removerCor}`, { method: 'DELETE' });
+          await recarregarProdutoNoModal();
+        } catch (err) {
+          alert(err.message);
+        }
+      });
+    });
+
+    // Botão remover a foto específica de uma cor
+    container.querySelectorAll('[data-remover-foto-cor]').forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        if (!confirm('Remover esta foto?')) return;
+        try {
+          const produtoId = document.getElementById('produto_id').value;
+          await apiFetchAdmin(`/produtos/admin/${produtoId}/imagens/${btn.dataset.removerFotoCor}`, { method: 'DELETE' });
+          await recarregarProdutoNoModal();
+        } catch (err) {
+          alert(err.message);
+        }
+      });
+    });
+
+    // Upload direto de foto pra cor específica — um clique só, já sobe a
+    // foto E já vincula ela àquela cor, sem etapa nenhuma no meio.
+    container.querySelectorAll('.input-foto-cor').forEach((input) => {
+      input.addEventListener('change', async (e) => {
+        const arquivo = e.target.files[0];
+        if (!arquivo) return;
+        const corId = input.dataset.corId;
+        const alertaEl = document.getElementById('alerta-cores');
+        alertaEl.innerHTML = `<p class="texto-suave" style="font-size:0.85rem;">Enviando foto...</p>`;
+
+        try {
+          const produtoId = document.getElementById('produto_id').value;
+          const formData = new FormData();
+          formData.append('imagens', arquivo);
+          formData.append('cor_id', corId);
+          await apiFetchAdmin(`/produtos/admin/${produtoId}`, { method: 'PUT', body: formData });
+          alertaEl.innerHTML = '';
+          await recarregarProdutoNoModal();
+        } catch (err) {
+          alertaEl.innerHTML = `<div class="alerta alerta-erro">${escapeHtml(err.message)}</div>`;
+        }
+      });
+    });
+  }
+
+  // Fotos que não pertencem a nenhuma cor. A que bate com produto.imagem_url
+  // é A foto principal (só existe uma) — separamos ela visualmente das
+  // demais, que ficam como "fotos adicionais". Sem essa separação, todas
+  // pareciam "principal" igualmente, o que confundia bastante no admin.
+  const fotosGerais = imagens.filter((img) => !img.cor_id);
+  const fotoPrincipal = fotosGerais.find((img) => img.imagem_url === produto.imagem_url) || null;
+  const fotosAdicionais = fotosGerais.filter((img) => img !== fotoPrincipal);
+
+  if (fotosGerais.length === 0) {
+    fotosGeraisSecao.style.display = 'none';
+  } else {
+    fotosGeraisSecao.style.display = 'block';
+
+    const htmlPrincipal = fotoPrincipal ? `
+      <p style="font-weight:600; font-size:0.85rem; margin-bottom:6px;">Foto principal</p>
+      <div class="galeria-admin-item" style="max-width:160px; border:2px solid var(--cor-primaria);">
+        <img src="${BACKEND_ORIGIN}${fotoPrincipal.imagem_url}" alt="Foto principal do produto">
+        <span class="badge-foto-principal" style="display:block; text-align:center; background:var(--cor-primaria); color:#fff; font-size:0.72rem; font-weight:700; padding:3px;">PRINCIPAL</span>
+      </div>
+    ` : '';
+
+    const htmlAdicionais = fotosAdicionais.length > 0 ? `
+      <p style="font-weight:600; font-size:0.85rem; margin:14px 0 6px;">Fotos adicionais (sem cor específica)</p>
+      <div id="fotos-gerais-lista"></div>
+    ` : '';
+
+    fotosGeraisSecao.innerHTML = `
+      <label>Fotos gerais do produto</label>
+      <p class="texto-suave" style="font-size:0.8rem; margin-bottom:6px;">
+        A foto principal é a capa do produto na loja. As demais aparecem quando nenhuma cor está selecionada.
+      </p>
+      ${htmlPrincipal}
+      ${htmlAdicionais}
+    `;
+
+    const listaAdicionaisEl = document.getElementById('fotos-gerais-lista');
+    if (listaAdicionaisEl) {
+      listaAdicionaisEl.className = 'galeria-admin-lista';
+      listaAdicionaisEl.innerHTML = fotosAdicionais.map((img) => `
+        <div class="galeria-admin-item">
+          <img src="${BACKEND_ORIGIN}${img.imagem_url}" alt="Foto do produto">
+          <button type="button" class="galeria-admin-item__remover" data-imagem-id="${img.id}" title="Remover esta foto"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><line x1="4" y1="4" x2="20" y2="20"/><line x1="20" y1="4" x2="4" y2="20"/></svg></button>
+          <button type="button" class="link-acao" data-tornar-principal="${img.id}" style="display:block; width:100%; text-align:center; font-size:0.75rem; padding:4px;">Tornar principal</button>
+        </div>
+      `).join('');
+
+      listaAdicionaisEl.querySelectorAll('.galeria-admin-item__remover').forEach((btn) => {
+        btn.addEventListener('click', async () => {
+          if (!confirm('Remover esta foto do produto?')) return;
+          try {
+            const produtoId = document.getElementById('produto_id').value;
+            await apiFetchAdmin(`/produtos/admin/${produtoId}/imagens/${btn.dataset.imagemId}`, {
+              method: 'DELETE',
+            });
+            await recarregarProdutoNoModal();
+          } catch (err) {
+            alert(err.message);
+          }
+        });
+      });
+
+      listaAdicionaisEl.querySelectorAll('[data-tornar-principal]').forEach((btn) => {
+        btn.addEventListener('click', async () => {
+          try {
+            const produtoId = document.getElementById('produto_id').value;
+            await apiFetchAdmin(`/produtos/admin/${produtoId}/foto-principal`, {
+              method: 'PUT',
+              body: JSON.stringify({ imagem_id: btn.dataset.tornarPrincipal }),
+            });
+            await recarregarProdutoNoModal();
+          } catch (err) {
+            alert(err.message);
+          }
+        });
+      });
+    }
+  }
+}
+
+document.getElementById('btn-add-cor').addEventListener('click', async () => {
+  const nomeInput = document.getElementById('nova_cor_nome');
+  const nome = nomeInput.value.trim();
+  const hex = document.getElementById('nova_cor_hex').value;
+  const alertaEl = document.getElementById('alerta-cores');
+  alertaEl.innerHTML = '';
+
+  if (!nome) {
+    alertaEl.innerHTML = `<div class="alerta alerta-erro">Digite um nome pra cor antes de adicionar.</div>`;
+    return;
+  }
+
+  try {
+    const produtoId = document.getElementById('produto_id').value;
+    await apiFetchAdmin(`/produtos/admin/${produtoId}/cores`, {
+      method: 'POST',
+      body: JSON.stringify({ nome, codigo_hex: hex }),
+    });
+    nomeInput.value = '';
+    await recarregarProdutoNoModal();
+  } catch (err) {
+    alertaEl.innerHTML = `<div class="alerta alerta-erro">${escapeHtml(err.message)}</div>`;
+  }
+});
+
+// ---------- Tamanhos ----------
+
+let ultimoProdutoCarregado = null;
+
+function renderizarEstoqueVariacoes(produto) {
+  ultimoProdutoCarregado = produto;
+  const secao = document.getElementById('secao-estoque-variacoes');
+  const tabela = document.getElementById('tabela-estoque-variacoes');
+  const cores = produto.cores || [];
+  const tamanhos = produto.tamanhos || [];
+  const variacoes = produto.variacoes || [];
+
+  // Sem cor nem tamanho cadastrados: não faz sentido mostrar a matriz —
+  // esse produto continua usando o campo "Estoque" simples, de sempre.
+  if (cores.length === 0 && tamanhos.length === 0) {
+    secao.style.display = 'none';
+    return;
+  }
+  secao.style.display = 'block';
+
+  function estoqueDe(corId, tamanhoId) {
+    const v = variacoes.find((x) => (x.cor_id || null) === (corId || null) && (x.tamanho_id || null) === (tamanhoId || null));
+    return v ? v.estoque : 0;
+  }
+
+  // Monta a matriz: linhas = cores (ou "Todos os produtos" se não tiver cor),
+  // colunas = tamanhos (ou uma coluna única "Estoque" se não tiver tamanho).
+  const linhasCores = cores.length > 0 ? cores : [{ id: null, nome: 'Todos os produtos' }];
+  const colunasTamanhos = tamanhos.length > 0 ? tamanhos : [{ id: null, tamanho: 'Estoque' }];
+
+  const cabecalho = `<thead><tr><th>Cor</th>${colunasTamanhos.map((t) => `<th>${escapeHtml(t.tamanho)}</th>`).join('')}</tr></thead>`;
+  const linhas = linhasCores.map((cor) => `
+    <tr>
+      <td>${escapeHtml(cor.nome)}</td>
+      ${colunasTamanhos.map((tam) => `
+        <td>
+          <input type="number" min="0" class="input-estoque-variacao"
+                 data-cor-id="${cor.id ?? ''}" data-tamanho-id="${tam.id ?? ''}"
+                 value="${estoqueDe(cor.id, tam.id)}"
+                 style="width:70px; padding:6px; border:1.5px solid var(--cor-linha); border-radius:4px; font-family:inherit;">
+        </td>
+      `).join('')}
+    </tr>
+  `).join('');
+
+  tabela.innerHTML = cabecalho + `<tbody>${linhas}</tbody>`;
+}
+
+document.getElementById('btn-salvar-estoque').addEventListener('click', async () => {
+  const alertaEl = document.getElementById('alerta-estoque');
+  const inputs = document.querySelectorAll('.input-estoque-variacao');
+  const variacoes = Array.from(inputs).map((input) => ({
+    cor_id: input.dataset.corId || null,
+    tamanho_id: input.dataset.tamanhoId || null,
+    estoque: input.value,
+  }));
+
+  try {
+    const produtoId = document.getElementById('produto_id').value;
+    await apiFetchAdmin(`/produtos/admin/${produtoId}/variacoes`, {
+      method: 'PUT',
+      body: JSON.stringify({ variacoes }),
+    });
+    alertaEl.innerHTML = `<div class="alerta alerta-sucesso">Estoque salvo com sucesso!</div>`;
+    setTimeout(() => (alertaEl.innerHTML = ''), 2500);
+  } catch (err) {
+    alertaEl.innerHTML = `<div class="alerta alerta-erro">${escapeHtml(err.message)}</div>`;
+  }
+});
+
+function renderizarTamanhos(tamanhos) {
+  const container = document.getElementById('lista-tamanhos');
+  if (tamanhos.length === 0) {
+    container.innerHTML = `<p class="texto-suave" style="font-size:0.85rem;">Nenhum tamanho cadastrado ainda.</p>`;
+    return;
+  }
+  container.innerHTML = tamanhos.map((t) => `
+    <span class="tag-admin">
+      ${escapeHtml(t.tamanho)}
+      <button type="button" data-remover-tamanho="${t.id}" aria-label="Remover tamanho ${escapeHtml(t.tamanho)}"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><line x1="4" y1="4" x2="20" y2="20"/><line x1="20" y1="4" x2="4" y2="20"/></svg></button>
+    </span>
+  `).join('');
+
+  container.querySelectorAll('[data-remover-tamanho]').forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      try {
+        const produtoId = document.getElementById('produto_id').value;
+        await apiFetchAdmin(`/produtos/admin/${produtoId}/tamanhos/${btn.dataset.removerTamanho}`, { method: 'DELETE' });
+        const produto = await apiFetchAdmin(`/produtos/admin/${produtoId}`);
+        renderizarTamanhos(produto.tamanhos || []);
+        renderizarEstoqueVariacoes(produto);
+      } catch (err) {
+        alert(err.message);
+      }
+    });
+  });
+}
+
+document.getElementById('btn-add-tamanho').addEventListener('click', async () => {
+  const tamanho = document.getElementById('novo_tamanho').value.trim();
+  if (!tamanho) return;
+
+  try {
+    const produtoId = document.getElementById('produto_id').value;
+    await apiFetchAdmin(`/produtos/admin/${produtoId}/tamanhos`, {
+      method: 'POST',
+      body: JSON.stringify({ tamanho }),
+    });
+    document.getElementById('novo_tamanho').value = '';
+    const produto = await apiFetchAdmin(`/produtos/admin/${produtoId}`);
+    renderizarTamanhos(produto.tamanhos || []);
+    renderizarEstoqueVariacoes(produto);
+  } catch (err) {
+    alert(err.message);
+  }
+});
+
+function fecharModal() {
+  document.getElementById('modal-produto').style.display = 'none';
+}
+
+document.getElementById('btn-novo-produto').addEventListener('click', abrirModalNovo);
+document.getElementById('btn-cancelar-modal').addEventListener('click', fecharModal);
+
+document.getElementById('form-produto').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const alertaModal = document.getElementById('alerta-modal');
+  alertaModal.innerHTML = '';
+
+  const id = document.getElementById('produto_id').value;
+  const formData = new FormData();
+  formData.append('nome', document.getElementById('p_nome').value);
+  formData.append('categoria_id', document.getElementById('p_categoria').value);
+  formData.append('descricao', document.getElementById('p_descricao').value);
+  formData.append('preco_custo', document.getElementById('p_custo').value);
+  formData.append('preco_varejo', document.getElementById('p_varejo').value);
+  formData.append('preco_atacado', document.getElementById('p_atacado').value);
+  formData.append('desconto_atacado_percentual', document.getElementById('p_desconto').value);
+  formData.append('quantidade_minima_atacado', document.getElementById('p_qtd_minima').value);
+  formData.append('estoque', document.getElementById('p_estoque').value);
+  formData.append('possui_flores', document.getElementById('p_possui_flores_sim').checked ? 'true' : 'false');
+  formData.append('peso_kg', document.getElementById('p_peso').value);
+  formData.append('altura_cm', document.getElementById('p_altura').value);
+  formData.append('largura_cm', document.getElementById('p_largura').value);
+  formData.append('comprimento_cm', document.getElementById('p_comprimento').value);
+
+  const arquivosImagem = document.getElementById('p_imagem').files;
+  for (const arquivo of arquivosImagem) {
+    formData.append('imagens', arquivo);
+  }
+
+  try {
+    if (id) {
+      await apiFetchAdmin(`/produtos/admin/${id}`, { method: 'PUT', body: formData });
+    } else {
+      await apiFetchAdmin('/produtos/admin', { method: 'POST', body: formData });
+    }
+    fecharModal();
+    carregarProdutos();
+  } catch (err) {
+    alertaModal.innerHTML = `<div class="alerta alerta-erro">${escapeHtml(err.message)}</div>`;
+  }
+});
+
+async function removerProduto(id) {
+  if (!confirm('Tem certeza que deseja excluir este produto? Essa ação não pode ser desfeita — o produto, suas fotos, cores e tamanhos serão apagados permanentemente.')) return;
+  try {
+    await apiFetchAdmin(`/produtos/admin/${id}`, { method: 'DELETE' });
+    carregarProdutos();
+  } catch (err) {
+    alert(err.message);
+  }
+}
+
+document.getElementById('p_imagem').addEventListener('change', (e) => {
+  const status = document.getElementById('upload-fotos-status');
+  const n = e.target.files.length;
+  status.textContent = n === 0
+    ? 'Nenhuma foto selecionada'
+    : n === 1
+    ? '1 foto selecionada'
+    : `${n} fotos selecionadas`;
+  status.classList.toggle('upload-fotos__status--ativo', n > 0);
+});
+
+(async function iniciar() {
+  await carregarCategoriasSelect();
+  await carregarProdutos();
+})();
+</script>
+</body>
+</html>

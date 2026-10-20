@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<link rel="icon" type="image/png" href="../assets/favicon.png">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cristal Floricultura Admin — Categorias</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/style.css">
+<link rel="stylesheet" href="css/admin.css">
+</head>
+<body class="admin-body">
+
+<div class="admin-shell">
+  <aside class="admin-sidebar">
+    <div class="admin-sidebar__logo">
+      <img src="../assets/logo.png" alt="Logo Cristal Floricultura">
+      <span>Cristal Floricultura Admin</span>
+    </div>
+    <ul class="admin-sidebar__nav" id="admin-nav"></ul>
+    <div class="admin-sidebar__rodape">
+      <p class="texto-suave" style="font-size:0.85rem; margin-bottom:8px;">Olá, <strong id="admin-nome"></strong></p>
+      <button class="btn btn-secundario btn-bloco" id="btn-sair">Sair</button>
+    </div>
+  </aside>
+
+  <main class="admin-main">
+    <div class="admin-topo">
+      <div>
+        <h1 style="margin-bottom:2px;">Categorias</h1>
+        <p class="texto-suave">Crie, edite e organize as categorias da loja — elas aparecem automaticamente no site.</p>
+      </div>
+      <button class="btn btn-primario btn-grande" id="btn-nova-categoria">Nova categoria</button>
+    </div>
+
+    <div id="alerta-categorias"></div>
+
+    <div class="admin-painel">
+      <div style="overflow-x:auto;">
+        <table class="tabela-admin">
+          <thead>
+            <tr><th>Imagem</th><th>Nome</th><th>Slug</th><th>Ordem</th><th>Produtos</th><th>Status</th><th></th></tr>
+          </thead>
+          <tbody id="tabela-categorias">
+            <tr><td colspan="7">Carregando...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Modal de criação/edição de categoria -->
+<div class="modal-fundo" id="modal-categoria" style="display:none;">
+  <div class="modal-caixa" style="max-width:480px;">
+    <h2 id="modal-titulo">Nova categoria</h2>
+    <form id="form-categoria">
+      <input type="hidden" id="categoria_id">
+
+      <div class="campo">
+        <label for="c_nome">Nome da categoria</label>
+        <input type="text" id="c_nome" required placeholder="Ex: Buquês">
+        <p class="texto-suave" style="font-size:0.8rem; margin-top:4px;" id="preview-slug"></p>
+      </div>
+
+      <div class="campo">
+        <label>Imagem da categoria</label>
+        <div class="upload-fotos">
+          <label class="upload-fotos__botao">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5-5 5 5"/><path d="M12 5v12"/></svg>
+            Selecionar imagem
+            <input type="file" id="c_imagem" accept="image/png,image/jpeg,image/webp,image/gif" style="display:none;">
+          </label>
+          <span class="upload-fotos__status" id="c_imagem_status">Nenhuma imagem selecionada</span>
+        </div>
+        <div id="c_imagem_preview" style="margin-top:10px; display:none;">
+          <div class="galeria-admin-item" style="width:110px;">
+            <img id="c_imagem_preview_img" src="" alt="Pré-visualização da categoria">
+          </div>
+          <button type="button" class="link-acao link-acao--perigo" id="btn-remover-imagem-categoria" style="margin-top:8px; display:none;">Remover imagem</button>
+        </div>
+      </div>
+
+      <div class="campo-linha">
+        <div class="campo">
+          <label for="c_ordem">Ordem de exibição</label>
+          <input type="number" id="c_ordem" min="0" value="0">
+        </div>
+        <div class="campo">
+          <label for="c_status">Status</label>
+          <select id="c_status">
+            <option value="1">Ativa</option>
+            <option value="0">Inativa</option>
+          </select>
+        </div>
+      </div>
+
+      <div id="alerta-modal-categoria"></div>
+      <div class="acoes-linha" style="margin-top:16px;">
+        <button type="submit" class="btn btn-primario">Salvar</button>
+        <button type="button" class="btn btn-secundario" id="btn-cancelar-categoria">Cancelar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script src="../js/api.js"></script>
+<script src="../js/cart.js"></script>
+<script src="js/admin.js"></script>
+<script>
+exigirLoginAdmin();
+montarSidebarAdmin('categorias');
+
+let categoriaEmEdicaoImagemUrl = null;
+let arquivoImagemSelecionado = null;
+
+function gerarSlugPreview(nome) {
+  return nome.trim().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '')
+    .replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+}
+
+document.getElementById('c_nome').addEventListener('input', (e) => {
+  const slug = gerarSlugPreview(e.target.value);
+  document.getElementById('preview-slug').textContent = slug ? `URL: /categoria/${slug}` : '';
+});
+
+document.getElementById('c_imagem').addEventListener('change', (e) => {
+  const arquivo = e.target.files[0];
+  arquivoImagemSelecionado = arquivo || null;
+  if (!arquivo) return;
+
+  document.getElementById('c_imagem_status').textContent = arquivo.name;
+  document.getElementById('c_imagem_status').classList.add('upload-fotos__status--ativo');
+
+  const reader = new FileReader();
+  reader.onload = (ev) => {
+    document.getElementById('c_imagem_preview_img').src = ev.target.result;
+    document.getElementById('c_imagem_preview').style.display = 'block';
+  };
+  reader.readAsDataURL(arquivo);
+});
+
+async function carregarCategorias() {
+  const tbody = document.getElementById('tabela-categorias');
+  try {
+    const categorias = await apiFetchAdmin('/categorias/admin/all');
+
+    if (categorias.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="7">Nenhuma categoria cadastrada ainda.</td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = categorias.map((c) => `
+      <tr>
+        <td>
+          ${c.imagem_url
+            ? `<div class="galeria-admin-item" style="width:52px;"><img src="${BACKEND_ORIGIN}${c.imagem_url}" alt="${escapeHtml(c.nome)}"></div>`
+            : `<span class="texto-suave" style="font-size:0.78rem;">Sem foto</span>`}
+        </td>
+        <td>${escapeHtml(c.nome)}</td>
+        <td class="texto-suave">${escapeHtml(c.slug)}</td>
+        <td>${c.ordem_exibicao}</td>
+        <td>${c.total_produtos}</td>
+        <td><span class="badge ${c.ativo ? 'badge-entregue' : 'badge-cancelado'}">${c.ativo ? 'Ativa' : 'Inativa'}</span></td>
+        <td>
+          <div class="acoes-linha">
+            <button class="link-acao" data-editar="${c.id}">Editar</button>
+            <button class="link-acao link-acao--perigo" data-remover="${c.id}" data-total="${c.total_produtos}">Remover</button>
+          </div>
+        </td>
+      </tr>
+    `).join('');
+
+    tbody.querySelectorAll('[data-editar]').forEach((btn) => {
+      const categoria = categorias.find((c) => String(c.id) === btn.dataset.editar);
+      btn.addEventListener('click', () => abrirModalEdicao(categoria));
+    });
+    tbody.querySelectorAll('[data-remover]').forEach((btn) => {
+      btn.addEventListener('click', () => removerCategoria(btn.dataset.remover, Number(btn.dataset.total)));
+    });
+  } catch (err) {
+    tbody.innerHTML = `<tr><td colspan="7">${escapeHtml(err.message)}</td></tr>`;
+  }
+}
+
+function resetarFormularioImagem() {
+  arquivoImagemSelecionado = null;
+  categoriaEmEdicaoImagemUrl = null;
+  document.getElementById('c_imagem').value = '';
+  document.getElementById('c_imagem_status').textContent = 'Nenhuma imagem selecionada';
+  document.getElementById('c_imagem_status').classList.remove('upload-fotos__status--ativo');
+  document.getElementById('c_imagem_preview').style.display = 'none';
+  document.getElementById('btn-remover-imagem-categoria').style.display = 'none';
+}
+
+async function removerImagemCategoria() {
+  const id = document.getElementById('categoria_id').value;
+  if (!id || !categoriaEmEdicaoImagemUrl) return;
+  if (!confirm('Tem certeza de que deseja remover esta imagem?')) return;
+
+  const alertaModal = document.getElementById('alerta-modal-categoria');
+  const botaoRemover = document.getElementById('btn-remover-imagem-categoria');
+  botaoRemover.disabled = true;
+  botaoRemover.textContent = 'Removendo...';
+  alertaModal.innerHTML = '';
+
+  try {
+    await apiFetchAdmin(`/categorias/${id}/imagem`, { method: 'DELETE' });
+    alertaModal.innerHTML = `<div class="alerta alerta-sucesso">Imagem removida com sucesso.</div>`;
+    categoriaEmEdicaoImagemUrl = null;
+    arquivoImagemSelecionado = null;
+    document.getElementById('c_imagem').value = '';
+    document.getElementById('c_imagem_preview_img').src = '';
+    document.getElementById('c_imagem_preview').style.display = 'none';
+    document.getElementById('c_imagem_status').textContent = 'Nenhuma imagem selecionada';
+    document.getElementById('c_imagem_status').classList.remove('upload-fotos__status--ativo');
+    botaoRemover.style.display = 'none';
+    carregarCategorias();
+  } catch (err) {
+    alertaModal.innerHTML = `<div class="alerta alerta-erro">Não foi possível remover a imagem. Tente novamente.</div>`;
+  } finally {
+    botaoRemover.disabled = false;
+    botaoRemover.textContent = 'Remover imagem';
+  }
+}
+
+document.getElementById('btn-remover-imagem-categoria').addEventListener('click', removerImagemCategoria);
+
+function abrirModalNova() {
+  document.getElementById('modal-titulo').textContent = 'Nova categoria';
+  document.getElementById('form-categoria').reset();
+  document.getElementById('categoria_id').value = '';
+  document.getElementById('c_ordem').value = 0;
+  document.getElementById('c_status').value = '1';
+  document.getElementById('preview-slug').textContent = '';
+  document.getElementById('alerta-modal-categoria').innerHTML = '';
+  resetarFormularioImagem();
+  document.getElementById('modal-categoria').style.display = 'flex';
+}
+
+function abrirModalEdicao(categoria) {
+  document.getElementById('modal-titulo').textContent = 'Editar categoria';
+  document.getElementById('categoria_id').value = categoria.id;
+  document.getElementById('c_nome').value = categoria.nome;
+  document.getElementById('c_ordem').value = categoria.ordem_exibicao || 0;
+  document.getElementById('c_status').value = categoria.ativo ? '1' : '0';
+  document.getElementById('preview-slug').textContent = `URL: /categoria/${gerarSlugPreview(categoria.nome)}`;
+  document.getElementById('alerta-modal-categoria').innerHTML = '';
+  resetarFormularioImagem();
+
+  if (categoria.imagem_url) {
+    categoriaEmEdicaoImagemUrl = categoria.imagem_url;
+    document.getElementById('c_imagem_preview_img').src = `${BACKEND_ORIGIN}${categoria.imagem_url}`;
+    document.getElementById('c_imagem_preview').style.display = 'block';
+    document.getElementById('c_imagem_status').textContent = 'Imagem atual (selecione outra para trocar)';
+    document.getElementById('btn-remover-imagem-categoria').style.display = 'inline-block';
+  }
+
+  document.getElementById('modal-categoria').style.display = 'flex';
+}
+
+function fecharModal() {
+  document.getElementById('modal-categoria').style.display = 'none';
+}
+
+document.getElementById('btn-nova-categoria').addEventListener('click', abrirModalNova);
+document.getElementById('btn-cancelar-categoria').addEventListener('click', fecharModal);
+
+document.getElementById('form-categoria').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const alertaModal = document.getElementById('alerta-modal-categoria');
+  alertaModal.innerHTML = '';
+
+  const id = document.getElementById('categoria_id').value;
+
+  const formData = new FormData();
+  formData.append('nome', document.getElementById('c_nome').value);
+  formData.append('ordem_exibicao', document.getElementById('c_ordem').value || 0);
+  formData.append('ativo', document.getElementById('c_status').value);
+  if (arquivoImagemSelecionado) {
+    formData.append('imagem', arquivoImagemSelecionado);
+  }
+
+  try {
+    if (id) {
+      await apiFetchAdmin(`/categorias/${id}`, { method: 'PUT', body: formData });
+    } else {
+      await apiFetchAdmin('/categorias', { method: 'POST', body: formData });
+    }
+    fecharModal();
+    carregarCategorias();
+  } catch (err) {
+    alertaModal.innerHTML = `<div class="alerta alerta-erro">${escapeHtml(err.message)}</div>`;
+  }
+});
+
+async function removerCategoria(id, totalProdutos) {
+  const aviso = totalProdutos > 0
+    ? `Esta categoria tem ${totalProdutos} produto(s). Remova ou mova esses produtos antes de excluir a categoria. Tentar mesmo assim?`
+    : 'Tem certeza que deseja remover esta categoria?';
+  if (!confirm(aviso)) return;
+
+  try {
+    await apiFetchAdmin(`/categorias/${id}`, { method: 'DELETE' });
+    carregarCategorias();
+  } catch (err) {
+    alert(err.message);
+  }
+}
+
+carregarCategorias();
+</script>
+</body>
+</html>

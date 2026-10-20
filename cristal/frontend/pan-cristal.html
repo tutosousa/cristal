@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<link rel="icon" type="image/png" href="assets/favicon.png">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Panificadora Pan Cristal — Surubim, PE</title>
+<meta name="description" content="Panificadora Pan Cristal, em Surubim - PE. Pães, bolos, salgados e doces feitos todos os dias.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/pan-cristal.css">
+</head>
+<body class="pc-corpo">
+
+<div class="pc-topbar">
+  <div class="pc-container pc-topbar__linha">
+    <span class="pc-topbar__assinatura">Pão quentinho, todo dia.</span>
+    <div class="pc-topbar__contato">
+      <a href="https://wa.me/5581999999999" target="_blank" rel="noopener">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 21l1.65-4.95A9 9 0 1 1 8 19l-5 2"/><path d="M9 10a1 1 0 0 0 2 2 5 5 0 0 0 3 3 1 1 0 0 0 2-2 8 8 0 0 1-7-3Z"/></svg>
+        (81) 99999-9999
+      </a>
+      <a href="mailto:contato@pancristal.com.br">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>
+        contato@pancristal.com.br
+      </a>
+      <a href="https://instagram.com" target="_blank" rel="noopener" aria-label="Instagram">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="0.5" fill="currentColor"/></svg>
+      </a>
+    </div>
+  </div>
+</div>
+
+<header class="pc-header">
+  <div class="pc-container pc-header__top">
+    <a href="pan-cristal.html" class="pc-header__logo" aria-label="Pan Cristal — início">
+      <img src="assets/pan-cristal-chamada.png" alt="Pan Cristal" class="pc-header__logo-imagem">
+    </a>
+
+    <button class="pc-header__menu-toggle" id="pc-menu-toggle" aria-label="Abrir menu" aria-expanded="false">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+    </button>
+
+    <nav class="pc-header__nav" id="pc-header-nav">
+      <a href="#sobre">A Pan Cristal</a>
+      <a href="#produtos">Produtos</a>
+      <a href="#galeria">Galeria</a>
+      <a href="#contato" class="pc-header__nav-destaque">Fale conosco</a>
+    </nav>
+
+    <a href="index.html" class="pc-header__home" aria-label="Ir para a Cristal Floricultura">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg>
+    </a>
+  </div>
+</header>
+
+<section class="pc-hero">
+  <!-- Imagem gerenciável (Imagens do site → Pan Cristal → hero_principal). -->
+  <img src="assets/images/pan-cristal-hero.png" alt="Fachada da Panificadora Cristal" class="pc-hero__foto" id="pc-img-hero_principal">
+  <div class="pc-container pc-hero__conteudo">
+    <span class="pc-eyebrow">Surubim — Pernambuco</span>
+    <h1>Sabor de<br><em>padaria de verdade</em></h1>
+    <p>Pães, bolos, salgados e doces feitos todos os dias, com o cuidado de quem faz pensando na sua mesa.</p>
+    <div class="pc-hero__acoes">
+      <a href="#produtos" class="pc-btn pc-btn--primario pc-btn--grande" style="color: white;">Ver produtos</a>
+      <a href="https://wa.me/5581999999999" target="_blank" rel="noopener" class="pc-btn pc-btn--secundario pc-btn--grande">Falar no WhatsApp</a>
+    </div>
+  </div>
+
+  <div class="pc-hero__selo">
+    <span>Se tá na mesa,<br>é da<br>Pan Cristal</span>
+  </div>
+
+  <!-- Imagens gerenciáveis pelo admin (Imagens do site → Pan Cristal → hero_miniatura_1/2/3). -->
+  <div class="pc-hero__miniaturas">
+    <div class="pc-hero__miniatura" id="pc-img-hero_miniatura_1">Foto: Pão</div>
+    <div class="pc-hero__miniatura" id="pc-img-hero_miniatura_2">Foto: Bolo</div>
+    <div class="pc-hero__miniatura" id="pc-img-hero_miniatura_3">Foto: Salgado</div>
+  </div>
+</section>
+
+<section class="pc-secao" id="produtos">
+  <div class="pc-container">
+    <div class="pc-cabecalho pc-cabecalho--centro">
+      <span class="pc-eyebrow">Conheça nossos</span>
+      <h2>Produtos</h2>
+      <p>Uma linha completa para o seu dia a dia e para quem também tem um negócio de olho na qualidade.</p>
+    </div>
+
+    <div class="pc-opcoes">
+      <a href="#produtos-grade" class="pc-opcao pc-opcao--preenchida">
+        <span class="pc-opcao__icone">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg>
+        </span>
+        <span class="pc-opcao__texto">
+          <strong style="color: white;">Para sua casa</strong>
+          <span style="color: white;">Pão fresquinho e produtos do dia a dia</span>
+        </span>
+      </a>
+      <a href="#contato" class="pc-opcao">
+        <span class="pc-opcao__icone">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 21V9l8-6 8 6v12"/><path d="M9 21v-6h6v6"/></svg>
+        </span>
+        <span class="pc-opcao__texto">
+          <strong>Para o seu negócio</strong>
+          <span>Fornecimento para cafés, mercados e eventos</span>
+        </span>
+      </a>
+    </div>
+
+    <div class="pc-produtos-carrossel" id="produtos-grade">
+      <button class="pc-seta pc-seta--esquerda" id="pc-seta-esq" aria-label="Produtos anteriores">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+      </button>
+
+      <div class="pc-produtos-grade" id="pc-produtos-grade">
+        <div class="pc-card">
+          <!-- Imagem gerenciável (Imagens do site → Pan Cristal → produto_paes). -->
+          <div class="pc-card__imagem" id="pc-img-produto_paes"><span>Foto: Pães</span></div>
+          <div class="pc-card__corpo">
+            <span class="pc-card__titulo">Pães</span>
+            <p>Fermentação lenta e casquinha crocante, assados todos os dias.</p>
+            <a href="#contato" class="pc-card__link">Saiba mais [+]</a>
+          </div>
+        </div>
+        <div class="pc-card">
+          <!-- Imagem gerenciável (Imagens do site → Pan Cristal → produto_bolos). -->
+          <div class="pc-card__imagem" id="pc-img-produto_bolos"><span>Foto: Bolos</span></div>
+          <div class="pc-card__corpo">
+            <span class="pc-card__titulo">Bolos</span>
+            <p>Receitas tradicionais e opções para encomendas especiais.</p>
+            <a href="#contato" class="pc-card__link">Saiba mais [+]</a>
+          </div>
+        </div>
+        <div class="pc-card">
+          <!-- Imagem gerenciável (Imagens do site → Pan Cristal → produto_salgados). -->
+          <div class="pc-card__imagem" id="pc-img-produto_salgados"><span>Foto: Salgados</span></div>
+          <div class="pc-card__corpo">
+            <span class="pc-card__titulo">Salgados</span>
+            <p>Coxinha, esfiha e risole feitos na hora.</p>
+            <a href="#contato" class="pc-card__link">Saiba mais [+]</a>
+          </div>
+        </div>
+        <div class="pc-card">
+          <!-- Imagem gerenciável (Imagens do site → Pan Cristal → produto_doces). -->
+          <div class="pc-card__imagem" id="pc-img-produto_doces"><span>Foto: Doces</span></div>
+          <div class="pc-card__corpo">
+            <span class="pc-card__titulo">Doces</span>
+            <p>Croissants, sonhos e outras opções para adoçar o dia.</p>
+            <a href="#contato" class="pc-card__link">Saiba mais [+]</a>
+          </div>
+        </div>
+        <div class="pc-card">
+          <!-- Imagem gerenciável (Imagens do site → Pan Cristal → produto_lanches). -->
+          <div class="pc-card__imagem" id="pc-img-produto_lanches"><span>Foto: Lanches</span></div>
+          <div class="pc-card__corpo">
+            <span class="pc-card__titulo">Lanches</span>
+            <p>Opções rápidas para qualquer hora do dia.</p>
+            <a href="#contato" class="pc-card__link">Saiba mais [+]</a>
+          </div>
+        </div>
+        <div class="pc-card">
+          <!-- Imagem gerenciável (Imagens do site → Pan Cristal → produto_cafes). -->
+          <div class="pc-card__imagem" id="pc-img-produto_cafes"><span>Foto: Cafés</span></div>
+          <div class="pc-card__corpo">
+            <span class="pc-card__titulo">Cafés</span>
+            <p>Café fresco para acompanhar qualquer item da padaria.</p>
+            <a href="#contato" class="pc-card__link">Saiba mais [+]</a>
+          </div>
+        </div>
+      </div>
+
+      <button class="pc-seta pc-seta--direita" id="pc-seta-dir" aria-label="Próximos produtos">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+      </button>
+    </div>
+  </div>
+</section>
+
+<section class="pc-sobre" id="sobre">
+  <div class="pc-sobre__grade">
+    <!-- Imagem gerenciável (Imagens do site → Pan Cristal → sobre_historia). -->
+    <div class="pc-sobre__imagem" id="pc-img-sobre_historia">
+      <span>Foto da fachada ou da produção da Pan Cristal (substituir por imagem real)</span>
+    </div>
+    <div class="pc-sobre__texto">
+      <span class="pc-eyebrow">Nossa história</span>
+      <h2>A <em>Pan Cristal</em></h2>
+      <p>Nascemos para levar pão quentinho e produtos de padaria de qualidade para o dia a dia de Surubim — um espaço simples, cuidado com atenção, para quem busca sabor de verdade todos os dias.</p>
+      <p style="font-size:0.85rem; opacity:0.75;">Texto institucional de exemplo — substituir pelo conteúdo real da Pan Cristal.</p>
+      <span class="pc-btn-selo">
+        <a href="#contato" class="pc-btn pc-btn--branco">Conheça nossa história</a>
+        <span class="pc-btn-selo__marca" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></svg>
+        </span>
+      </span>
+    </div>
+  </div>
+</section>
+
+<section class="pc-secao pc-secao--preta" id="galeria">
+  <div class="pc-container">
+    <div class="pc-cabecalho pc-cabecalho--centro">
+      <span class="pc-eyebrow">Um pouco do nosso dia a dia</span>
+      <h2>Galeria</h2>
+    </div>
+    <!-- Imagens gerenciáveis (Imagens do site → Pan Cristal → galeria_1 a galeria_6). -->
+    <div class="pc-galeria-grade">
+      <div class="pc-galeria-item" id="pc-img-galeria_1">Fachada</div>
+      <div class="pc-galeria-item" id="pc-img-galeria_2">Produtos</div>
+      <div class="pc-galeria-item" id="pc-img-galeria_3">Bolos</div>
+      <div class="pc-galeria-item" id="pc-img-galeria_4">Pães, salgados e ambiente</div>
+      <div class="pc-galeria-item" id="pc-img-galeria_5">Atendimento</div>
+      <div class="pc-galeria-item" id="pc-img-galeria_6">Salgados</div>
+    </div>
+  </div>
+</section>
+
+<section class="pc-secao pc-secao--areia" id="contato">
+  <div class="pc-container">
+    <div class="pc-cabecalho pc-cabecalho--centro">
+      <span class="pc-eyebrow">Informações</span>
+      <h2>Onde e quando nos encontrar</h2>
+    </div>
+    <div class="pc-info">
+      <div class="pc-info-item">
+        <strong>Onde estamos</strong>
+        <span>Surubim — Pernambuco</span>
+      </div>
+      <div class="pc-info-item">
+        <strong>Horário</strong>
+        <span>Seg. a Sáb., 6h às 20h</span>
+      </div>
+      <div class="pc-info-item">
+        <strong>Contato</strong>
+        <span>(81) 99999-9999</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="pc-voltar-faixa">
+  <div class="pc-container">
+    <p>Procurando flores e presentes?</p>
+    <a href="index.html" class="pc-btn pc-btn--claro">Voltar para Cristal Floricultura</a>
+  </div>
+</div>
+
+<footer class="pc-footer">
+  <div class="pc-container pc-footer__topo">
+    <div class="pc-footer__marca">
+      <img src="assets/pan-cristal-chamada.png" alt="Pan Cristal" class="pc-footer__logo-imagem">
+      <span class="pc-footer__marca-texto">
+        <strong>Panificadora Pan Cristal</strong>
+        <em>Pão quentinho, todo dia.</em>
+      </span>
+    </div>
+    <nav class="pc-footer__nav">
+      <a href="#sobre">A Pan Cristal</a>
+      <a href="#produtos">Produtos</a>
+      <a href="#galeria">Galeria</a>
+      <a href="#contato">Fale conosco</a>
+    </nav>
+    <div class="pc-footer__contato-pills">
+      <a href="https://wa.me/5581999999999" target="_blank" rel="noopener" class="pc-footer__pill">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21l1.65-4.95A9 9 0 1 1 8 19l-5 2"/></svg>
+        (81) 99999-9999
+      </a>
+      <a href="index.html" class="pc-footer__pill">Cristal Floricultura</a>
+    </div>
+  </div>
+
+  <div class="pc-container pc-footer__grade">
+    <div class="pc-footer__coluna">
+      <h4>Panificadora Pan Cristal</h4>
+      <p style="max-width:340px;">Pães, bolos, salgados e doces feitos todos os dias. Surubim — PE.</p>
+    </div>
+    <div class="pc-footer__coluna">
+      <h4>Institucional</h4>
+      <ul>
+        <li><a href="pan-cristal.html">Pan Cristal</a></li>
+        <li><a href="index.html">Cristal Floricultura</a></li>
+      </ul>
+    </div>
+    <div class="pc-footer__coluna">
+      <h4>Fale com a gente</h4>
+      <ul>
+        <li><a href="mailto:contato@pancristal.com.br">contato@pancristal.com.br</a></li>
+        <li>Surubim — Pernambuco</li>
+        <li>Seg. a Sáb., 6h às 20h</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="pc-container pc-footer__barra">
+    <p>© <span id="ano"></span> Panificadora Pan Cristal. Todos os direitos reservados.</p>
+    <div class="pc-footer__barra-links">
+      <a href="index.html">Cristal Floricultura</a>
+    </div>
+  </div>
+</footer>
+
+<script src="js/api.js"></script>
+<script>
+document.getElementById('ano').textContent = new Date().getFullYear();
+
+const menuToggle = document.getElementById('pc-menu-toggle');
+const headerNav = document.getElementById('pc-header-nav');
+menuToggle.addEventListener('click', () => {
+  const aberto = headerNav.classList.toggle('pc-header__nav--aberto');
+  menuToggle.setAttribute('aria-expanded', String(aberto));
+});
+
+const produtosGrade = document.getElementById('pc-produtos-grade');
+const cardLargura = () => produtosGrade.querySelector('.pc-card')?.offsetWidth + 22 || 240;
+document.getElementById('pc-seta-esq').addEventListener('click', () => {
+  produtosGrade.scrollBy({ left: -cardLargura(), behavior: 'smooth' });
+});
+document.getElementById('pc-seta-dir').addEventListener('click', () => {
+  produtosGrade.scrollBy({ left: cardLargura(), behavior: 'smooth' });
+});
+
+// Imagens gerenciáveis pelo admin (Imagens do site → Pan Cristal). Cada
+// chave só é aplicada se existir imagem configurada; caso contrário, o
+// placeholder/imagem padrão do HTML permanece — o site nunca quebra.
+async function carregarImagensConteudoPanCristal() {
+  try {
+    const imagens = await apiFetch('/conteudo-imagens/pan-cristal');
+    imagens.forEach((item) => {
+      if (!item.imagem_url) return;
+      const elemento = document.getElementById(`pc-img-${item.chave}`);
+      if (!elemento) return;
+
+      if (elemento.tagName === 'IMG') {
+        elemento.src = `${BACKEND_ORIGIN}${item.imagem_url}`;
+      } else {
+        elemento.innerHTML = `<img src="${BACKEND_ORIGIN}${item.imagem_url}" alt="${escapeHtml(item.label || '')}">`;
+      }
+    });
+  } catch (err) {
+    console.error('Não foi possível carregar as imagens de conteúdo da Pan Cristal:', err);
+  }
+}
+
+carregarImagensConteudoPanCristal();
+</script>
+</body>
+</html>

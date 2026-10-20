@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<link rel="icon" type="image/png" href="assets/favicon.png">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Página não encontrada — Cristal Floricultura</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="container site-header__top">
+    <a href="index.html" class="site-header__logo">
+      <img src="assets/logo.png" alt="Logo Cristal Floricultura">
+      <span>Cristal Floricultura</span>
+    </a>
+    <div class="site-header__acoes">
+      <span class="site-header__divisor" aria-hidden="true"></span>
+      <a href="pan-cristal.html" class="site-header__pan-cristal" aria-label="Acessar Panificadora Pan Cristal">
+        <img src="assets/pan-cristal-chamada.png" alt="Pan Cristal">
+      </a>
+      <a href="carrinho.html" class="carrinho-link">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+        <span class="carrinho-link__contador" id="carrinho-contador">0</span>
+      </a>
+    </div>
+  </div>
+</header>
+
+<main class="container secao pagina-404">
+  <div class="pagina-404__conteudo">
+    <span class="pagina-404__numero">404</span>
+    <h1>Essa página saiu de linha.</h1>
+    <p class="texto-suave">
+      A página que você tentou acessar não existe, foi movida, ou o endereço foi digitado errado.
+    </p>
+    <div class="pagina-404__acoes">
+      <a href="index.html" class="btn btn-primario btn-grande">Voltar para a loja</a>
+      <a href="pan-cristal.html" class="btn btn-secundario btn-grande">Conhecer a Pan Cristal</a>
+    </div>
+    <p class="texto-suave" style="margin-top:32px; font-size:0.9rem;">
+      Precisa de ajuda? <a href="https://wa.me/5581999999999" target="_blank" rel="noopener">Fala com a gente no WhatsApp</a>.
+    </p>
+  </div>
+</main>
+
+<footer class="site-footer">
+  <div class="container">
+    <p>© <span id="ano"></span> Cristal Floricultura. Todos os direitos reservados.</p>
+  </div>
+</footer>
+
+<script src="js/api.js"></script>
+<script src="js/cart.js"></script>
+<script>
+document.getElementById('ano').textContent = new Date().getFullYear();
+</script>
+</body>
+</html>

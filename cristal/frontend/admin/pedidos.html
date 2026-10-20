@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<link rel="icon" type="image/png" href="../assets/favicon.png">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cristal Floricultura Admin — Pedidos</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/style.css">
+<link rel="stylesheet" href="css/admin.css">
+</head>
+<body class="admin-body">
+
+<div class="admin-shell">
+  <aside class="admin-sidebar">
+    <div class="admin-sidebar__logo">
+      <img src="../assets/logo.png" alt="Logo Cristal Floricultura">
+      <span>Cristal Floricultura Admin</span>
+    </div>
+    <ul class="admin-sidebar__nav" id="admin-nav"></ul>
+    <div class="admin-sidebar__rodape">
+      <p class="texto-suave" style="font-size:0.85rem; margin-bottom:8px;">Olá, <strong id="admin-nome"></strong></p>
+      <button class="btn btn-secundario btn-bloco" id="btn-sair">Sair</button>
+    </div>
+  </aside>
+
+  <main class="admin-main">
+    <div class="admin-topo">
+      <div>
+        <h1 style="margin-bottom:2px;">Pedidos</h1>
+        <p class="texto-suave">Acompanhe e atualize o status de cada pedido</p>
+      </div>
+      <select id="filtro-status" class="campo" style="width:220px; padding:12px; border:1.5px solid var(--cor-linha); border-radius:4px; font-family:inherit;">
+        <option value="">Pedidos ativos</option>
+        <option value="pendente">Pendente</option>
+        <option value="pago">Pago</option>
+        <option value="enviado">Enviado</option>
+        <option value="entregue">Entregue</option>
+        <option value="cancelado">Cancelado</option>
+      </select>
+    </div>
+    <p class="texto-suave" style="font-size:0.82rem; margin-top:-16px; margin-bottom:16px;">
+      Pedidos "Enviado" ou "Cancelado" saem da lista de ativos automaticamente — escolha esses status aqui no filtro pra vê-los quando precisar.
+    </p>
+
+    <div id="alerta-pedidos"></div>
+
+    <div class="admin-painel">
+      <div style="overflow-x:auto;">
+        <table class="tabela-admin">
+          <thead>
+            <tr>
+              <th>Nº do pedido</th><th>Cliente</th><th>Entrega</th>
+              <th>Total</th><th>Status</th><th>Data</th><th>Atualizar status</th><th>Comprovante</th>
+            </tr>
+          </thead>
+          <tbody id="tabela-pedidos">
+            <tr><td colspan="8">Carregando...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script src="../js/api.js"></script>
+<script src="../js/cart.js"></script>
+<script src="js/admin.js"></script>
+<script>
+exigirLoginAdmin();
+montarSidebarAdmin('pedidos');
+
+const STATUS_OPCOES = ['pendente', 'pago', 'enviado', 'entregue', 'cancelado'];
+
+function formatarData(dataStr) {
+  return new Date(dataStr).toLocaleString('pt-BR');
+}
+
+// Mostra qual sistema de entrega foi usado no pedido — a mesma decisão que
+// o backend tomou de verdade ao criar o pedido (ver orderController.js),
+// nunca um valor recalculado aqui na tela.
+function formatarEntrega(p) {
+  if (p.tipo_entrega === 'entrega_local') {
+    const referencia = p.ponto_referencia ? ` <br><span class="texto-suave" style="font-size:0.78rem;">Ref.: ${escapeHtml(p.ponto_referencia)}</span>` : '';
+    return `<span class="badge badge-pago">Entrega local</span><br>${escapeHtml(p.cidade_entrega || '—')}${referencia}`;
+  }
+  if (p.tipo_entrega === 'combinado_atacado') {
+    return `<span class="badge badge-pendente">Envio combinado</span>`;
+  }
+  return `${escapeHtml(p.endereco_cidade || '—')}/${escapeHtml(p.endereco_estado || '')}<br><span class="texto-suave" style="font-size:0.78rem;">Melhor Envio</span>`;
+}
+
+async function carregarPedidos() {
+  const tbody = document.getElementById('tabela-pedidos');
+  const status = document.getElementById('filtro-status').value;
+
+  try {
+    const query = status ? `?status=${status}` : '';
+    const pedidos = await apiFetchAdmin(`/pedidos/admin/all${query}`);
+
+    if (pedidos.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="8">Nenhum pedido encontrado.</td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = pedidos.map((p) => `
+      <tr>
+        <td>${escapeHtml(p.numero_pedido)}</td>
+        <td>${escapeHtml(p.cliente_nome)}<br><span class="texto-suave" style="font-size:0.82rem;">${escapeHtml(p.cliente_telefone)}</span></td>
+        <td>${formatarEntrega(p)}</td>
+        <td>${formatarPreco(p.total)}</td>
+        <td><span class="${classeBadgeStatus(p.status)}">${escapeHtml(p.status)}</span></td>
+        <td>${formatarData(p.criado_em)}</td>
+        <td>
+          <select data-id="${p.id}" class="select-status" style="padding:8px; border:1.5px solid var(--cor-linha); border-radius:4px; font-family:inherit;">
+            ${STATUS_OPCOES.map((s) => `<option value="${s}" ${s === p.status ? 'selected' : ''}>${s}</option>`).join('')}
+          </select>
+        </td>
+        <td>
+          <a href="imprimir-pedido.html?id=${p.id}" target="_blank" class="link-acao">Imprimir</a>
+        </td>
+      </tr>
+    `).join('');
+
+    tbody.querySelectorAll('.select-status').forEach((select) => {
+      select.addEventListener('change', () => atualizarStatus(select.dataset.id, select.value));
+    });
+  } catch (err) {
+    tbody.innerHTML = `<tr><td colspan="8">${escapeHtml(err.message)}</td></tr>`;
+  }
+}
+
+async function atualizarStatus(id, novoStatus) {
+  const alertaEl = document.getElementById('alerta-pedidos');
+  try {
+    await apiFetchAdmin(`/pedidos/admin/${id}/status`, {
+      method: 'PATCH',
+      body: JSON.stringify({ status: novoStatus }),
+    });
+    alertaEl.innerHTML = `<div class="alerta alerta-sucesso">Status atualizado com sucesso.</div>`;
+    setTimeout(() => (alertaEl.innerHTML = ''), 2500);
+    carregarPedidos();
+  } catch (err) {
+    alertaEl.innerHTML = `<div class="alerta alerta-erro">${escapeHtml(err.message)}</div>`;
+  }
+}
+
+document.getElementById('filtro-status').addEventListener('change', carregarPedidos);
+
+carregarPedidos();
+</script>
+</body>
+</html>

@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<link rel="icon" type="image/png" href="../assets/favicon.png">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cristal Floricultura Admin — Frete</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/style.css">
+<link rel="stylesheet" href="css/admin.css">
+</head>
+<body class="admin-body">
+
+<div class="admin-shell">
+  <aside class="admin-sidebar">
+    <div class="admin-sidebar__logo">
+      <img src="../assets/logo.png" alt="Logo Cristal Floricultura">
+      <span>Cristal Floricultura Admin</span>
+    </div>
+    <ul class="admin-sidebar__nav" id="admin-nav"></ul>
+    <div class="admin-sidebar__rodape">
+      <p class="texto-suave" style="font-size:0.85rem; margin-bottom:8px;">Olá, <strong id="admin-nome"></strong></p>
+      <button class="btn btn-secundario btn-bloco" id="btn-sair">Sair</button>
+    </div>
+  </aside>
+
+  <main class="admin-main">
+    <h1 style="margin-bottom:2px;">Frete</h1>
+    <p class="texto-suave">Conecte o Melhor Envio pra cotação de frete real no checkout</p>
+
+    <div id="alerta-frete" style="margin-top:16px;"></div>
+
+    <div class="admin-painel" style="padding:24px; margin-top:16px;">
+      <div id="status-conexao">Carregando status da conexão...</div>
+    </div>
+  </main>
+</div>
+
+<script src="../js/api.js"></script>
+<script src="js/admin.js"></script>
+<script>
+exigirLoginAdmin();
+montarSidebarAdmin('frete');
+
+const params = new URLSearchParams(window.location.search);
+const alertaEl = document.getElementById('alerta-frete');
+if (params.get('conectado') === '1') {
+  alertaEl.innerHTML = `<div class="alerta alerta-sucesso">Conectado ao Melhor Envio com sucesso!</div>`;
+} else if (params.get('erro')) {
+  const mensagens = {
+    estado_invalido: 'A autorização expirou ou é inválida. Tente conectar de novo.',
+    falha_conexao: 'Não foi possível concluir a conexão com o Melhor Envio. Confira as credenciais no .env e tente novamente.',
+  };
+  alertaEl.innerHTML = `<div class="alerta alerta-erro">${mensagens[params.get('erro')] || 'Erro ao conectar com o Melhor Envio.'}</div>`;
+}
+
+async function carregarStatus() {
+  const statusEl = document.getElementById('status-conexao');
+  try {
+    const status = await apiFetchAdmin('/frete/melhor-envio/status');
+
+    if (!status.configurado) {
+      statusEl.innerHTML = `
+        <p><strong>O Melhor Envio ainda não foi configurado no servidor.</strong></p>
+        <p class="texto-suave">Peça pra quem cuida do código adicionar <code>MELHOR_ENVIO_CLIENT_ID</code>, <code>MELHOR_ENVIO_CLIENT_SECRET</code>, <code>MELHOR_ENVIO_CEP_ORIGEM</code> e <code>BACKEND_URL</code> nas variáveis de ambiente do backend.</p>
+      `;
+      return;
+    }
+
+    if (status.viaTokenDireto) {
+      statusEl.innerHTML = `
+        <p style="color: var(--cor-sucesso); font-weight:600;">Conectado ao Melhor Envio (Token de Acesso Direto)</p>
+        <p class="texto-suave">Configurado direto pela variável de ambiente — não precisa clicar em nada aqui, já está funcionando.</p>
+      `;
+    } else if (status.conectado) {
+      const dataExpiracao = new Date(status.expira_em).toLocaleDateString('pt-BR');
+      statusEl.innerHTML = `
+        <p style="color: var(--cor-sucesso); font-weight:600;">Conectado ao Melhor Envio</p>
+        <p class="texto-suave">O token de acesso é renovado automaticamente. Validade atual até ${dataExpiracao}.</p>
+        <button class="btn btn-secundario" id="btn-desconectar" style="margin-top:12px;">Desconectar</button>
+      `;
+      document.getElementById('btn-desconectar').addEventListener('click', desconectar);
+    } else {
+      statusEl.innerHTML = `
+        <p><strong>Desconectado</strong></p>
+        <p class="texto-suave" style="margin-bottom:16px;">Conecte sua conta do Melhor Envio pra habilitar cotação de frete real (Correios, Jadlog, etc) no checkout.</p>
+        <a class="btn btn-primario" id="btn-conectar" href="#">Conectar com Melhor Envio</a>
+      `;
+      document.getElementById('btn-conectar').addEventListener('click', (e) => {
+        e.preventDefault();
+        const token = obterTokenAdmin();
+        window.location.href = `${BACKEND_ORIGIN}/api/frete/melhor-envio/conectar?admin_token=${encodeURIComponent(token)}`;
+      });
+    }
+  } catch (err) {
+    statusEl.innerHTML = `<div class="alerta alerta-erro">${escapeHtml(err.message)}</div>`;
+  }
+}
+
+async function desconectar() {
+  if (!confirm('Desconectar do Melhor Envio? O checkout volta a usar frete grátis até você conectar de novo.')) return;
+  try {
+    await apiFetchAdmin('/frete/melhor-envio/desconectar', { method: 'POST' });
+    carregarStatus();
+  } catch (err) {
+    alert(err.message);
+  }
+}
+
+carregarStatus();
+</script>
+</body>
+</html>

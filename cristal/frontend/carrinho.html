@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<link rel="icon" type="image/png" href="assets/favicon.png">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cristal Floricultura — Meu carrinho</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="container site-header__top">
+    <a href="index.html" class="site-header__logo">
+      <img src="assets/logo.png" alt="Logo Cristal Floricultura">
+      <span>Cristal Floricultura</span>
+    </a>
+    <nav class="site-header__menu">
+      <ul class="site-header__menu-lista">
+        <li><a href="index.html">Loja</a></li>
+        <li><a href="index.html#categorias">Categorias</a></li>
+      </ul>
+    </nav>
+    <div class="site-header__acoes">
+      <a href="conta.html" class="nav-link-secundario" id="link-conta">Entrar</a>
+      <span class="site-header__divisor" aria-hidden="true"></span>
+      <a href="pan-cristal.html" class="site-header__pan-cristal" aria-label="Acessar Panificadora Pan Cristal">
+        <img src="assets/pan-cristal-chamada.png" alt="Pan Cristal">
+      </a>
+      <a href="carrinho.html" class="carrinho-link">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+        <span class="carrinho-link__contador" id="carrinho-contador">0</span>
+      </a>
+    </div>
+  </div>
+</header>
+
+<main class="container secao">
+  <h1>Meu carrinho</h1>
+  <div id="conteudo-carrinho"></div>
+</main>
+
+<footer class="site-footer">
+  <div class="container site-footer__grade">
+    <div class="site-footer__coluna">
+      <div class="site-footer__marca">
+        <img src="assets/logo.png" alt="Logo Cristal Floricultura">
+        <span>Cristal Floricultura</span>
+      </div>
+      <p class="texto-suave">Flores, buquês, cestas e presentes preparados com carinho para tornar cada momento especial. Surubim — PE.</p>
+      <div class="site-footer__social">
+        <a href="https://wa.me/5581999999999" target="_blank" rel="noopener" aria-label="WhatsApp">WhatsApp</a>
+        <a href="https://instagram.com" target="_blank" rel="noopener" aria-label="Instagram">Instagram</a>
+      </div>
+    </div>
+
+    <div class="site-footer__coluna">
+      <h4>Institucional</h4>
+      <ul>
+        <li><a href="index.html">Loja</a></li>
+        <li><a href="conta.html">Minha conta</a></li>
+        <li><a href="carrinho.html">Meu carrinho</a></li>
+        <li><a href="pan-cristal.html">Panificadora Pan Cristal</a></li>
+      </ul>
+    </div>
+
+    <div class="site-footer__coluna">
+      <h4>Categorias</h4>
+      <ul id="footer-categorias">
+        <li><a href="index.html">Ver todos os produtos</a></li>
+      </ul>
+    </div>
+
+    <div class="site-footer__coluna">
+      <h4>Fale com a gente</h4>
+      <ul class="site-footer__contato">
+        <li><a href="https://wa.me/5581999999999" target="_blank" rel="noopener">WhatsApp: (81) 99999-9999</a></li>
+        <li><a href="mailto:contato@cristalfloricultura.com.br">E-mail: contato@cristalfloricultura.com.br</a></li>
+        <li>Seg. a Sáb., 8h às 18h</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="site-footer__barra">
+    <div class="container site-footer__barra-conteudo">
+      <p>© <span id="ano"></span> Cristal Floricultura. Todos os direitos reservados.</p>
+      <p class="texto-suave" style="font-size:0.82rem;">Pagamento processado com segurança via Mercado Pago — Pix, cartão e boleto.</p>
+    </div>
+  </div>
+</footer>
+
+<script src="js/api.js"></script>
+<script src="js/cart.js"></script>
+<script src="js/customer.js"></script>
+<script>
+document.getElementById('ano').textContent = new Date().getFullYear();
+atualizarLinkConta('link-conta');
+
+function renderizarCarrinho() {
+  const container = document.getElementById('conteudo-carrinho');
+  const carrinho = obterCarrinho();
+
+  if (carrinho.length === 0) {
+    container.innerHTML = `
+      <div class="estado-vazio">
+        <h3>Seu carrinho está vazio</h3>
+        <p>Que tal dar uma olhada nos nossos produtos?</p>
+        <a href="index.html" class="btn btn-primario">Ver catálogo</a>
+      </div>
+    `;
+    return;
+  }
+
+  const itensCalculados = carrinho.map((item) => calcularItem(item));
+  const subtotal = itensCalculados.reduce((soma, item) => soma + item.subtotal, 0);
+
+  const listaHtml = itensCalculados.map((item) => {
+    const imagem = item.imagem_url
+      ? `<img src="${BACKEND_ORIGIN}${item.imagem_url}" alt="${escapeHtml(item.nome)}">`
+      : '';
+    const variacao = [item.tamanho, item.cor].filter(Boolean).join(' · ');
+    return `
+      <div class="carrinho-item">
+        <div class="carrinho-item__imagem">${imagem}</div>
+        <div>
+          <p class="carrinho-item__nome">${escapeHtml(item.nome)}</p>
+          ${variacao ? `<p class="texto-suave" style="font-size:0.85rem; margin:0 0 4px;">${escapeHtml(variacao)}</p>` : ''}
+          <p class="carrinho-item__preco">
+            ${formatarPreco(item.precoUnitario)} × ${item.quantidade}
+          </p>
+        </div>
+        <div class="carrinho-item__acoes">
+          <div class="quantidade-seletor" style="margin:0;">
+            <button type="button" data-acao="menos" data-chave="${item.chave}" aria-label="Diminuir">−</button>
+            <input type="number" min="1" value="${item.quantidade}" data-chave="${item.chave}" class="input-qtd-carrinho">
+            <button type="button" data-acao="mais" data-chave="${item.chave}" aria-label="Aumentar">+</button>
+          </div>
+          <strong>${formatarPreco(item.subtotal)}</strong>
+          <button class="carrinho-item__remover" data-chave="${item.chave}">Remover</button>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  container.innerHTML = `
+    <div class="carrinho-layout">
+      <div>${listaHtml}</div>
+      <div class="resumo-pedido">
+        <h3>Resumo</h3>
+        <div class="resumo-pedido__linha">
+          <span>Subtotal</span>
+          <span>${formatarPreco(subtotal)}</span>
+        </div>
+        <div class="resumo-pedido__linha resumo-pedido__linha--total">
+          <span>Total</span>
+          <span>${formatarPreco(subtotal)}</span>
+        </div>
+        <a href="checkout.html" class="btn btn-primario btn-bloco btn-grande" style="margin-top:16px;">
+          Finalizar compra
+        </a>
+        ${!obterTokenCliente() ? '<p class="texto-suave" style="font-size:0.82rem; margin-top:8px; text-align:center;">Você vai precisar entrar na sua conta (ou criar uma) pra finalizar.</p>' : ''}
+      </div>
+    </div>
+  `;
+
+  container.querySelectorAll('[data-acao]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const chave = btn.dataset.chave;
+      const item = obterCarrinho().find((i) => i.chave === chave);
+      if (!item) return;
+      const novaQtd = btn.dataset.acao === 'mais' ? item.quantidade + 1 : item.quantidade - 1;
+      atualizarQuantidade(chave, novaQtd);
+      renderizarCarrinho();
+    });
+  });
+
+  container.querySelectorAll('.input-qtd-carrinho').forEach((input) => {
+    input.addEventListener('change', () => {
+      atualizarQuantidade(input.dataset.chave, Math.max(1, Number(input.value) || 1));
+      renderizarCarrinho();
+    });
+  });
+
+  container.querySelectorAll('.carrinho-item__remover').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      removerDoCarrinho(btn.dataset.chave);
+      renderizarCarrinho();
+    });
+  });
+}
+
+renderizarCarrinho();
+</script>
+</body>
+</html>

@@ -13,7 +13,7 @@ function urlImagem(caminho) {
 }
 //
 // Enquanto estiver testando no seu computador, deixe como está (localhost).
-const BACKEND_ORIGIN = 'http://localhost:5000';
+const BACKEND_ORIGIN = 'cristal-beta.vercel.app';
 const API_BASE_URL = `${BACKEND_ORIGIN}/api`;
 
 /**

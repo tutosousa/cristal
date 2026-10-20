@@ -124,7 +124,7 @@ function montarAvisoDesconto(produto) {
 function trocarFotoPrincipal(indice) {
   indiceFotoAtual = indice;
   const principal = document.getElementById('foto-principal');
-  if (principal) principal.src = `${BACKEND_ORIGIN}${galeriaAtual[indice]}`;
+  if (principal) principal.src = `${urlImagem(galeriaAtual[indice])}`;
   document.querySelectorAll('.produto-detalhe__miniaturas button').forEach((btn, i) => {
     btn.classList.toggle('ativa', i === indice);
   });
@@ -187,14 +187,14 @@ function montarGaleria(produto) {
 
   const miniaturas = galeriaAtual.map((url, i) => `
     <button type="button" class="${i === indiceFotoAtual ? 'ativa' : ''}" data-indice="${i}">
-      <img src="${BACKEND_ORIGIN}${url}" alt="Foto ${i + 1} de ${escapeHtml(produto.nome)}">
+      <img src="${urlImagem(url)}" alt="Foto ${i + 1} de ${escapeHtml(produto.nome)}">
     </button>
   `).join('');
 
   return `
     <div class="produto-detalhe__galeria" id="galeria-produto">
       <div class="produto-detalhe__imagem">
-        <img id="foto-principal" src="${BACKEND_ORIGIN}${galeriaAtual[indiceFotoAtual]}" alt="${escapeHtml(produto.nome)}">
+        <img id="foto-principal" src="${urlImagem(galeriaAtual[indiceFotoAtual])}" alt="${escapeHtml(produto.nome)}">
       </div>
       ${galeriaAtual.length > 1 ? `<div class="produto-detalhe__miniaturas">${miniaturas}</div>` : ''}
     </div>

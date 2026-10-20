@@ -358,7 +358,7 @@ function renderizarCores(produto) {
           </div>
           <div class="card-cor-admin__foto">
             ${primeiraFoto
-              ? `<img src="${BACKEND_ORIGIN}${primeiraFoto.imagem_url}" alt="Foto da cor ${escapeHtml(c.nome)}">`
+              ? `<img src="${urlImagem(primeiraFoto.imagem_url)}" alt="Foto da cor ${escapeHtml(c.nome)}">`
               : `<div class="card-cor-admin__sem-foto">Nenhuma foto ainda</div>`
             }
           </div>
@@ -442,7 +442,7 @@ function renderizarCores(produto) {
     const htmlPrincipal = fotoPrincipal ? `
       <p style="font-weight:600; font-size:0.85rem; margin-bottom:6px;">Foto principal</p>
       <div class="galeria-admin-item" style="max-width:160px; border:2px solid var(--cor-primaria);">
-        <img src="${BACKEND_ORIGIN}${fotoPrincipal.imagem_url}" alt="Foto principal do produto">
+        <img src="${urlImagem(fotoPrincipal.imagem_url)}" alt="Foto principal do produto">
         <span class="badge-foto-principal" style="display:block; text-align:center; background:var(--cor-primaria); color:#fff; font-size:0.72rem; font-weight:700; padding:3px;">PRINCIPAL</span>
       </div>
     ` : '';
@@ -466,7 +466,7 @@ function renderizarCores(produto) {
       listaAdicionaisEl.className = 'galeria-admin-lista';
       listaAdicionaisEl.innerHTML = fotosAdicionais.map((img) => `
         <div class="galeria-admin-item">
-          <img src="${BACKEND_ORIGIN}${img.imagem_url}" alt="Foto do produto">
+          <img src="${urlImagem(img.imagem_url)}" alt="Foto do produto">
           <button type="button" class="galeria-admin-item__remover" data-imagem-id="${img.id}" title="Remover esta foto"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><line x1="4" y1="4" x2="20" y2="20"/><line x1="20" y1="4" x2="4" y2="20"/></svg></button>
           <button type="button" class="link-acao" data-tornar-principal="${img.id}" style="display:block; width:100%; text-align:center; font-size:0.75rem; padding:4px;">Tornar principal</button>
         </div>

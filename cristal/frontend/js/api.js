@@ -4,6 +4,13 @@
 // abaixo pelo endereço do seu backend hospedado (ex: no Render), assim:
 //   const BACKEND_ORIGIN = 'https://cristal-floricultura-backend.onrender.com';
 //   const API_BASE_URL = `${BACKEND_ORIGIN}/api`;
+
+// Imagens podem vir como caminho local (/uploads/...) ou como URL completa
+// (Cloudinary, em produção). Esta função devolve sempre um endereço válido.
+function urlImagem(caminho) {
+  if (!caminho) return '';
+  return /^https?:\/\//i.test(caminho) ? caminho : `${BACKEND_ORIGIN}${caminho}`;
+}
 //
 // Enquanto estiver testando no seu computador, deixe como está (localhost).
 const BACKEND_ORIGIN = 'http://localhost:5000';

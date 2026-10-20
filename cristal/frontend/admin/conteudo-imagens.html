@@ -80,7 +80,7 @@ function renderizarItemImagem(site, item) {
   const idAlerta = `alerta-${site}-${item.chave}`;
 
   const previewConteudo = item.imagem_url
-    ? `<img id="${idPreview}" src="${BACKEND_ORIGIN}${item.imagem_url}" alt="${escapeHtml(item.label)}">`
+    ? `<img id="${idPreview}" src="${urlImagem(item.imagem_url)}" alt="${escapeHtml(item.label)}">`
     : `<span id="${idPreview}" class="texto-suave" style="font-size:0.78rem; text-align:center; padding:8px;">Nenhuma imagem enviada ainda</span>`;
 
   return `

@@ -118,7 +118,7 @@ function renderizarCarrinho() {
 
   const listaHtml = itensCalculados.map((item) => {
     const imagem = item.imagem_url
-      ? `<img src="${BACKEND_ORIGIN}${item.imagem_url}" alt="${escapeHtml(item.nome)}">`
+      ? `<img src="${urlImagem(item.imagem_url)}" alt="${escapeHtml(item.nome)}">`
       : '';
     const variacao = [item.tamanho, item.cor].filter(Boolean).join(' · ');
     return `

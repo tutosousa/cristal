@@ -198,7 +198,7 @@ const categoriaSelecionada = params.get('categoria');
 
 function renderizarCategoriaCard(cat) {
   const imagem = cat.imagem_url
-    ? `<img src="${BACKEND_ORIGIN}${cat.imagem_url}" alt="${escapeHtml(cat.nome)}">`
+    ? `<img src="${urlImagem(cat.imagem_url)}" alt="${escapeHtml(cat.nome)}">`
     : `<span class="categoria-card__sem-foto">Foto em breve</span>`;
 
   return `
@@ -244,7 +244,7 @@ async function carregarCategorias() {
 
 function renderizarProdutoCard(produto) {
   const imagem = produto.imagem_url
-    ? `<img src="${BACKEND_ORIGIN}${produto.imagem_url}" alt="${escapeHtml(produto.nome)}">`
+    ? `<img src="${urlImagem(produto.imagem_url)}" alt="${escapeHtml(produto.nome)}">`
     : `<div class="produto-card__placeholder">Foto em breve</div>`;
 
   return `
@@ -297,7 +297,7 @@ async function carregarImagensConteudo() {
       const idElemento = MAPA_IMAGENS_CONTEUDO[item.chave];
       const elemento = idElemento && document.getElementById(idElemento);
       if (!elemento) return;
-      elemento.innerHTML = `<img src="${BACKEND_ORIGIN}${item.imagem_url}" alt="${escapeHtml(item.label || '')}">`;
+      elemento.innerHTML = `<img src="${urlImagem(item.imagem_url)}" alt="${escapeHtml(item.label || '')}">`;
     });
   } catch (err) {
     // Falha silenciosa — mantém os placeholders, o resto da home continua funcionando normalmente.

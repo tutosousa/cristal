@@ -99,7 +99,9 @@ if (!process.env.JWT_SECRET || process.env.JWT_SECRET.length < 20) {
   );
 }
 
-app.listen(PORT, async () => {
+// Na Vercel (serverless) não se chama app.listen — a própria plataforma
+// recebe o `app` exportado abaixo. Localmente / no Render, sobe normalmente.
+const iniciarServidor = async () => {
   console.log(`\nAPI Cristal Floricultura rodando em http://localhost:${PORT}`);
   await testConnection();
   await testarConexaoEmail();
@@ -125,4 +127,10 @@ app.listen(PORT, async () => {
   } else {
     console.log('📦 Melhor Envio NÃO configurado — frete rodando em modo simulado (grátis).');
   }
-});
+};
+
+if (!process.env.VERCEL) {
+  app.listen(PORT, iniciarServidor);
+}
+
+module.exports = app;

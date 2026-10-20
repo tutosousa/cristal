@@ -1,4 +1,5 @@
 const { pool } = require('../config/db');
+const { urlDoArquivo } = require('../services/storage');
 
 // ---------- ROTAS PÚBLICAS (Loja Virtual) ----------
 
@@ -206,7 +207,7 @@ async function createProduct(req, res, next) {
     // req.files vem do multer configurado com upload.array('imagens', 8):
     // pode conter 0, 1 ou várias fotos enviadas de uma vez.
     const arquivos = req.files || [];
-    const urls = arquivos.map((f) => `/uploads/products/${f.filename}`);
+    const urls = arquivos.map((f) => urlDoArquivo(f));
     const imagem_url = urls[0] || null; // a primeira foto vira a "capa"
 
     const [result] = await pool.query(
@@ -288,7 +289,7 @@ async function updateProduct(req, res, next) {
           : 0;
 
     const arquivos = req.files || [];
-    const novasUrls = arquivos.map((f) => `/uploads/products/${f.filename}`);
+    const novasUrls = arquivos.map((f) => urlDoArquivo(f));
 
     // Se novas fotos foram enviadas, elas são ADICIONADAS à galeria existente
     // (não substituem automaticamente) — o admin remove fotos antigas à parte,

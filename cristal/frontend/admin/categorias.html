@@ -155,7 +155,7 @@ async function carregarCategorias() {
       <tr>
         <td>
           ${c.imagem_url
-            ? `<div class="galeria-admin-item" style="width:52px;"><img src="${BACKEND_ORIGIN}${c.imagem_url}" alt="${escapeHtml(c.nome)}"></div>`
+            ? `<div class="galeria-admin-item" style="width:52px;"><img src="${urlImagem(c.imagem_url)}" alt="${escapeHtml(c.nome)}"></div>`
             : `<span class="texto-suave" style="font-size:0.78rem;">Sem foto</span>`}
         </td>
         <td>${escapeHtml(c.nome)}</td>
@@ -251,7 +251,7 @@ function abrirModalEdicao(categoria) {
 
   if (categoria.imagem_url) {
     categoriaEmEdicaoImagemUrl = categoria.imagem_url;
-    document.getElementById('c_imagem_preview_img').src = `${BACKEND_ORIGIN}${categoria.imagem_url}`;
+    document.getElementById('c_imagem_preview_img').src = `${urlImagem(categoria.imagem_url)}`;
     document.getElementById('c_imagem_preview').style.display = 'block';
     document.getElementById('c_imagem_status').textContent = 'Imagem atual (selecione outra para trocar)';
     document.getElementById('btn-remover-imagem-categoria').style.display = 'inline-block';

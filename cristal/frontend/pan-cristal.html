@@ -62,7 +62,7 @@
     <h1>Sabor de<br><em>padaria de verdade</em></h1>
     <p>Pães, bolos, salgados e doces feitos todos os dias, com o cuidado de quem faz pensando na sua mesa.</p>
     <div class="pc-hero__acoes">
-      <a href="#produtos" class="pc-btn pc-btn--primario pc-btn--grande" style="color: white;">Ver produtos</a>
+      <a href="#produtos" class="pc-btn pc-btn--primario pc-btn--grande">Ver produtos</a>
       <a href="https://wa.me/5581999999999" target="_blank" rel="noopener" class="pc-btn pc-btn--secundario pc-btn--grande">Falar no WhatsApp</a>
     </div>
   </div>
@@ -93,8 +93,8 @@
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg>
         </span>
         <span class="pc-opcao__texto">
-          <strong style="color: white;">Para sua casa</strong>
-          <span style="color: white;">Pão fresquinho e produtos do dia a dia</span>
+          <strong>Para sua casa</strong>
+          <span>Pão fresquinho e produtos do dia a dia</span>
         </span>
       </a>
       <a href="#contato" class="pc-opcao">
@@ -332,9 +332,9 @@ async function carregarImagensConteudoPanCristal() {
       if (!elemento) return;
 
       if (elemento.tagName === 'IMG') {
-        elemento.src = `${BACKEND_ORIGIN}${item.imagem_url}`;
+        elemento.src = `${urlImagem(item.imagem_url)}`;
       } else {
-        elemento.innerHTML = `<img src="${BACKEND_ORIGIN}${item.imagem_url}" alt="${escapeHtml(item.label || '')}">`;
+        elemento.innerHTML = `<img src="${urlImagem(item.imagem_url)}" alt="${escapeHtml(item.label || '')}">`;
       }
     });
   } catch (err) {

@@ -1,6 +1,5 @@
-const fs = require('fs');
-const path = require('path');
 const { pool } = require('../config/db');
+const { urlDoArquivo, removerArquivo } = require('../services/storage');
 const { obterConfigSite } = require('../config/conteudoImagensChaves');
 
 // Lista as imagens de conteúdo de um site (cristal | pan-cristal), sempre
@@ -62,7 +61,7 @@ async function atualizarImagemSite(req, res, next) {
       return res.status(400).json({ error: 'Nenhuma imagem foi enviada. Selecione um arquivo e tente novamente.' });
     }
 
-    const novaImagemUrl = `/uploads/conteudo/${req.file.filename}`;
+    const novaImagemUrl = urlDoArquivo(req.file);
 
     const [existente] = await pool.query(
       'SELECT imagem_url FROM conteudo_imagens WHERE site = ? AND chave = ?',
@@ -80,12 +79,7 @@ async function atualizarImagemSite(req, res, next) {
     // a troca — nunca antes, pra não correr risco de ficar sem nenhuma
     // imagem caso o UPDATE falhasse.
     if (existente.length && existente[0].imagem_url) {
-      const caminhoAntigo = path.join(__dirname, '..', existente[0].imagem_url.replace(/^\/uploads\//, 'uploads/'));
-      fs.unlink(caminhoAntigo, () => {
-        // Se o arquivo não existir mais ou não puder ser apagado, só
-        // ignora — isso nunca deve impedir a resposta de sucesso pro
-        // admin, a troca da imagem já está concluída e salva.
-      });
+      removerArquivo(existente[0].imagem_url);
     }
 
     res.json({ message: 'Imagem atualizada com sucesso.', chave, imagem_url: novaImagemUrl });
@@ -128,11 +122,7 @@ async function removerImagemSite(req, res, next) {
     // Só apaga o arquivo do disco depois de confirmar que o banco já não
     // referencia mais ele — cada chave é usada em um único lugar do site,
     // então não existe risco de apagar um arquivo ainda em uso em outro ponto.
-    const caminhoAntigo = path.join(__dirname, '..', existente[0].imagem_url.replace(/^\/uploads\//, 'uploads/'));
-    fs.unlink(caminhoAntigo, () => {
-      // Se o arquivo já não existir ou não puder ser apagado, ignora — a
-      // remoção no banco já está concluída e é isso que importa pra resposta.
-    });
+    removerArquivo(existente[0].imagem_url);
 
     res.json({ message: 'Imagem removida com sucesso.', chave, imagem_url: null });
   } catch (err) {

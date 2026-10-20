@@ -467,3 +467,13 @@ Se a primeira visita demorar uns 30-60 segundos pra carregar, é normal — é o
 - Fotos de produto em um serviço de armazenamento persistente (ex: Cloudinary) — necessário se for hospedar no plano grátis do Render, que apaga arquivos enviados ao reiniciar
 - Endereços múltiplos por cliente (hoje cada conta tem um único endereço padrão salvo)
 - Catálogo de produtos reais da Panificadora Pan Cristal, com pedidos próprios (hoje a seção na home é só institucional)
+
+---
+
+## Publicando na Vercel (alternativa ao Render)
+
+**Backend** (projeto Vercel com *Root Directory* = `backend`): o arquivo `backend/vercel.json` já está pronto. Configure as variáveis do `.env.example` em *Settings → Environment Variables*, incluindo as do **Cloudinary** (`CLOUDINARY_URL` ou as três `CLOUDINARY_*`) — o disco da Vercel não guarda arquivos, então as fotos de produtos, categorias e "Imagens do site" são enviadas ao Cloudinary automaticamente quando essas variáveis existem. Sem elas (uso local), as fotos continuam indo para `backend/uploads`.
+
+> Limite da Vercel: o corpo de cada requisição aceita até ~4,5 MB, então fotos acima disso são recusadas. Use imagens de até ~4 MB.
+
+**Frontend** (outro projeto Vercel com *Root Directory* = `frontend`, Framework *Other*): antes de publicar, troque `BACKEND_ORIGIN` em `frontend/js/api.js` pela URL do backend. No backend, defina `FRONTEND_URL` com a URL do frontend e `BACKEND_URL` com a do backend.

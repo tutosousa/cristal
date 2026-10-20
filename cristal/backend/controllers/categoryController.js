@@ -1,6 +1,5 @@
-const fs = require('fs');
-const path = require('path');
 const { pool } = require('../config/db');
+const { urlDoArquivo, removerArquivo } = require('../services/storage');
 
 function gerarSlug(nome) {
   return nome
@@ -56,7 +55,7 @@ async function createCategory(req, res, next) {
     }
 
     const slug = gerarSlug(nome);
-    const imagem_url = req.file ? `/uploads/categories/${req.file.filename}` : null;
+    const imagem_url = req.file ? urlDoArquivo(req.file) : null;
     const ativoBool = ['false', '0', 0, false].includes(ativo) ? 0 : 1;
 
     const [result] = await pool.query(
@@ -88,7 +87,7 @@ async function updateCategory(req, res, next) {
     const ativoBool = ['false', '0', 0, false].includes(ativo) ? 0 : 1;
 
     if (req.file) {
-      const imagem_url = `/uploads/categories/${req.file.filename}`;
+      const imagem_url = urlDoArquivo(req.file);
       await pool.query(
         `UPDATE categorias
          SET nome = ?, slug = ?, imagem_url = ?, icone = ?, ativo = ?, ordem_exibicao = ?
@@ -149,11 +148,7 @@ async function removeCategoryImage(req, res, next) {
 
     await pool.query('UPDATE categorias SET imagem_url = NULL WHERE id = ?', [id]);
 
-    const caminhoAntigo = path.join(__dirname, '..', rows[0].imagem_url.replace(/^\/uploads\//, 'uploads/'));
-    fs.unlink(caminhoAntigo, () => {
-      // Se o arquivo já não existir ou não puder ser apagado, ignora — a
-      // remoção no banco já está concluída e é isso que importa pra resposta.
-    });
+    removerArquivo(rows[0].imagem_url);
 
     res.json({ message: 'Imagem removida com sucesso.' });
   } catch (err) {

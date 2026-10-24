@@ -2,12 +2,6 @@ const { pool } = require('../config/db');
 const { urlDoArquivo, removerArquivo } = require('../services/storage');
 const { obterConfigSite } = require('../config/conteudoImagensChaves');
 
-// Lista as imagens de conteúdo de um site (cristal | pan-cristal), sempre
-// devolvendo TODAS as chaves conhecidas daquele site — mesmo as que ainda
-// não têm nenhuma imagem cadastrada (imagem_url vem null nesse caso, e
-// quem está consumindo — site público ou admin — decide o que fazer: o
-// site público cai no visual padrão já existente, o admin mostra "Nenhuma
-// imagem enviada ainda").
 async function listarImagensSite(req, res, next) {
   try {
     const { site } = req.params;
@@ -38,12 +32,6 @@ async function listarImagensSite(req, res, next) {
   }
 }
 
-// Atualiza (cria ou substitui) a imagem de uma chave específica de um
-// site. Só admin autenticado chega aqui (ver rota). Se já existia uma
-// imagem anterior para essa mesma chave, apaga o arquivo antigo do disco
-// depois de confirmar que a troca no banco deu certo — uma chave é usada
-// em exatamente um lugar do site, então não tem risco de apagar uma
-// imagem que ainda está em uso em outro lugar.
 async function atualizarImagemSite(req, res, next) {
   try {
     const { site, chave } = req.params;
@@ -75,9 +63,6 @@ async function atualizarImagemSite(req, res, next) {
       [config.bancoSite, chave, novaImagemUrl]
     );
 
-    // Remove o arquivo antigo (se havia um) só depois do banco confirmar
-    // a troca — nunca antes, pra não correr risco de ficar sem nenhuma
-    // imagem caso o UPDATE falhasse.
     if (existente.length && existente[0].imagem_url) {
       removerArquivo(existente[0].imagem_url);
     }
@@ -88,10 +73,6 @@ async function atualizarImagemSite(req, res, next) {
   }
 }
 
-// Remove a imagem cadastrada de uma chave (volta pro fallback padrão do
-// site, já tratado no frontend público). Só admin autenticado chega aqui
-// (ver rota). Não apaga a linha da chave, só limpa imagem_url — assim a
-// chave continua existindo e pronta pra receber uma nova imagem depois.
 async function removerImagemSite(req, res, next) {
   try {
     const { site, chave } = req.params;
@@ -119,9 +100,6 @@ async function removerImagemSite(req, res, next) {
       [config.bancoSite, chave]
     );
 
-    // Só apaga o arquivo do disco depois de confirmar que o banco já não
-    // referencia mais ele — cada chave é usada em um único lugar do site,
-    // então não existe risco de apagar um arquivo ainda em uso em outro ponto.
     removerArquivo(existente[0].imagem_url);
 
     res.json({ message: 'Imagem removida com sucesso.', chave, imagem_url: null });

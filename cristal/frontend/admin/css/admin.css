@@ -1,13 +1,3 @@
-/* =========================================================================
-   CRISTAL FLORICULTURA — Painel Administrativo
-   Interface própria do painel, deliberadamente diferente da loja pública:
-   sidebar clara e neutra, com o verde de marca (#3B5943) usado apenas como
-   detalhe — estado ativo, ícones, bordas finas — nunca como bloco de cor
-   dominante. Cards minimalistas, tabelas elegantes, sombras discretas,
-   cantos pouco arredondados, sem gradientes. Reaproveita as variáveis de
-   cor definidas em css/style.css.
-   ========================================================================= */
-
 :root {
   --admin-fundo: #FAFAF8;
   --admin-superficie: #FFFFFF;
@@ -40,9 +30,6 @@
 @media (max-width: 860px) {
   .admin-shell { grid-template-columns: 1fr; }
 
-  /* Em vez de simplesmente esconder o menu (o que deixava o admin sem
-     navegação nenhuma no celular), ele vira uma gaveta que desliza da
-     esquerda, aberta pelo botão hambúrguer no topo. */
   .admin-topbar-mobile {
     display: flex;
     align-items: center;
@@ -102,7 +89,6 @@
   .admin-topo { flex-direction: column; align-items: flex-start; }
 }
 
-/* ------------------------------ Sidebar ------------------------------ */
 .admin-sidebar {
   background: var(--admin-sidebar-fundo);
   border-right: 1px solid var(--admin-linha);
@@ -174,13 +160,9 @@
 }
 .admin-sidebar__rodape .btn-secundario:hover { background: var(--admin-fundo); }
 
-/* ------------------------------ Área principal ------------------------------ */
 .admin-main {
   padding: 30px 32px;
-  min-width: 0; /* corrige um bug clássico do CSS Grid: sem isso, esta
-    coluna não consegue encolher menos que o conteúdo mais largo dela (ex:
-    uma tabela), mesmo com "rolar horizontal" configurado dentro dela —
-    o resultado era a PÁGINA INTEIRA ficando larga demais no celular. */
+  min-width: 0;
   background: var(--admin-fundo);
 }
 .admin-topo {
@@ -362,9 +344,6 @@ table.tabela-admin tbody tr:hover { background: var(--admin-fundo); }
 }
 .link-acao--perigo { color: var(--cor-erro); }
 
-/* Botões de ação nas tabelas (Editar, Excluir) ficavam baixos demais pra
-   tocar confortavelmente no celular — aumenta só a área de toque aqui,
-   sem alterar a aparência no desktop. */
 @media (max-width: 860px) {
   .link-acao {
     padding: 11px 12px;
@@ -403,7 +382,6 @@ table.tabela-admin tbody tr:hover { background: var(--admin-fundo); }
 .galeria-admin-item__remover svg { width: 11px; height: 11px; }
 .galeria-admin-item__remover:hover { background: var(--cor-erro); }
 
-/* ------------------------------ Botão de upload de fotos ------------------------------ */
 .upload-fotos {
   display: flex;
   align-items: center;
@@ -438,7 +416,6 @@ table.tabela-admin tbody tr:hover { background: var(--admin-fundo); }
   font-weight: 600;
 }
 
-/* ------------------------------ Tags de cor/tamanho (admin) ------------------------------ */
 .lista-tags-admin {
   display: flex;
   flex-wrap: wrap;
@@ -473,7 +450,6 @@ table.tabela-admin tbody tr:hover { background: var(--admin-fundo); }
 }
 .tag-admin button:hover { color: var(--cor-erro); }
 
-/* ------------------------------ Cards de cor (admin) ------------------------------ */
 .cards-cores-admin {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
@@ -542,7 +518,6 @@ table.tabela-admin tbody tr:hover { background: var(--admin-fundo); }
   padding: 8px 10px;
 }
 
-/* ------------------------------ Sino de notificações ------------------------------ */
 #sininho-notificacoes {
   display: flex;
   align-items: center;

@@ -1,9 +1,3 @@
-// Sanitização básica de entrada contra XSS.
-// Remove tags <script> e atributos de evento (onclick=, onerror=, etc.)
-// de todos os campos de texto enviados no corpo das requisições.
-// Isso é uma camada extra de proteção - o front-end também deve escapar
-// dados ao exibi-los (o que já fazemos usando textContent em vez de innerHTML).
-
 function sanitizeValue(value) {
   if (typeof value !== 'string') return value;
   return value

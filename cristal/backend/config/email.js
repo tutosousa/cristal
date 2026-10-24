@@ -1,25 +1,3 @@
-// Configuração de envio de e-mails (verificação de cadastro e login em duas
-// etapas / 2FA).
-//
-// Existem DOIS jeitos de enviar, e o sistema escolhe automaticamente:
-//
-// 1) API do Brevo (recomendado, principalmente se o backend estiver
-//    publicado no Render): usa uma chamada HTTPS normal, então não é
-//    bloqueada pelas restrições de porta SMTP que hospedagens gratuitas
-//    (como o Render) aplicam por padrão.
-//      BREVO_API_KEY=a_chave_de_api_do_brevo (não é a chave SMTP! é outra,
-//      gerada na aba "Chaves API e MCP" dentro de "Integrações" no painel
-//      do Brevo)
-//
-// 2) SMTP tradicional (funciona bem rodando local, mas pode ser bloqueado
-//    em algumas hospedagens gratuitas):
-//      SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, SMTP_FROM
-//
-// Se nenhum dos dois estiver configurado, o sistema roda em MODO SIMULADO:
-// o código de verificação aparece na tela (e no log do servidor) em vez de
-// ser enviado por e-mail de verdade — ótimo para testar localmente sem
-// precisar configurar nada.
-
 const nodemailer = require('nodemailer');
 
 const BREVO_API_KEY = process.env.BREVO_API_KEY;
@@ -43,7 +21,6 @@ const transporter = SMTP_ATIVO
     })
   : null;
 
-// Extrai nome e e-mail de "SMTP_FROM" no formato 'Cristal Floricultura <email@dominio.com>'
 function extrairRemetente() {
   const bruto = process.env.SMTP_FROM || process.env.SMTP_USER || 'contato@cristalfloricultura.com.br';
   const match = bruto.match(/^(.*)<(.+)>$/);
@@ -53,9 +30,6 @@ function extrairRemetente() {
   return { name: 'Cristal Floricultura', email: bruto.trim() };
 }
 
-// Testa a conexão assim que o backend sobe, pra avisar de cara se algo
-// estiver configurado errado — em vez de só descobrir isso quando alguém
-// tentar se cadastrar.
 async function testarConexaoEmail() {
   if (BREVO_ATIVO) {
     console.log('✅ Envio de e-mail via API do Brevo está ativo.');
@@ -107,16 +81,12 @@ async function enviarViaSmtp(destinatario, assunto, corpo) {
     text: corpo,
   });
 
-  // O servidor pode "aceitar" a chamada sem lançar erro, mas ainda assim
-  // recusar o destinatário (info.rejected não fica vazio nesse caso).
   if (info.rejected && info.rejected.length > 0) {
     throw new Error(`O servidor de e-mail recusou o envio para ${info.rejected.join(', ')}.`);
   }
   return info;
 }
 
-// Função genérica de envio — usada tanto pro código de verificação quanto
-// pelos e-mails de pedido (novo pedido pra empresa, confirmação pro cliente).
 async function enviarEmailGenerico(destinatario, assunto, corpo) {
   if (!EMAIL_ATIVO) {
     console.log(`\n📧 [MODO SIMULADO] E-mail para ${destinatario}: ${assunto}\n`);

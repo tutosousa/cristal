@@ -1,16 +1,3 @@
-// Armazenamento de imagens enviadas pelo admin.
-//
-// Dois modos, escolhidos automaticamente:
-//  - Cloudinary (produção, ex: Vercel): ativado quando CLOUDINARY_URL (ou
-//    CLOUDINARY_CLOUD_NAME + CLOUDINARY_API_KEY + CLOUDINARY_API_SECRET)
-//    estiver configurado. O disco da Vercel é temporário/somente leitura, por
-//    isso as fotos precisam ficar num serviço externo. No banco, passa a ser
-//    gravada a URL completa (https://res.cloudinary.com/...).
-//  - Disco local (desenvolvimento): salva em backend/uploads/<pasta> e grava
-//    no banco o caminho relativo (/uploads/<pasta>/<arquivo>), como sempre foi.
-//
-// O resto do sistema só usa: urlDoArquivo(file) e removerArquivo(url).
-
 const fs = require('fs');
 const path = require('path');
 
@@ -42,7 +29,6 @@ function obterCloudinary() {
   return cloudinaryClient;
 }
 
-// Envia um arquivo em memória (multer.memoryStorage) para o Cloudinary.
 function enviarBuffer(file, pasta) {
   const cloudinary = obterCloudinary();
   return new Promise((resolve, reject) => {
@@ -54,8 +40,6 @@ function enviarBuffer(file, pasta) {
   });
 }
 
-// Middleware pós-multer: envia req.file / req.files ao Cloudinary e
-// preenche file.urlFinal. Em modo disco, apenas monta o caminho local.
 function criarEnvioMiddleware(pasta) {
   return async function enviarArquivos(req, res, next) {
     try {
@@ -76,18 +60,14 @@ function criarEnvioMiddleware(pasta) {
   };
 }
 
-// URL que deve ser gravada no banco para um arquivo recém-enviado.
 function urlDoArquivo(file) {
   return file.urlFinal;
 }
 
-// Apaga o arquivo físico referente a uma URL gravada no banco. Nunca lança
-// erro (a remoção no banco é o que importa para o usuário).
 function removerArquivo(url) {
   if (!url) return;
   try {
     if (/^https?:\/\//i.test(url)) {
-      // Cloudinary: public_id = tudo depois de /upload/[v123/] sem extensão
       const m = url.match(/\/upload\/(?:v\d+\/)?(.+)\.[a-zA-Z0-9]+$/);
       if (m && cloudinaryAtivo()) {
         obterCloudinary().uploader.destroy(m[1]).catch(() => {});
@@ -97,7 +77,6 @@ function removerArquivo(url) {
       fs.unlink(caminho, () => {});
     }
   } catch (e) {
-    // ignora
   }
 }
 

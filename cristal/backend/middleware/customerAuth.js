@@ -1,7 +1,3 @@
-// Middleware de autenticação de CLIENTES da loja (separado do admin).
-// Protege rotas que exigem que o comprador esteja logado, como
-// "meus pedidos" e "meu perfil".
-
 const jwt = require('jsonwebtoken');
 
 function requireCustomerAuth(req, res, next) {
@@ -18,16 +14,13 @@ function requireCustomerAuth(req, res, next) {
     if (decoded.tipo !== 'cliente') {
       return res.status(403).json({ error: 'Token inválido para esta operação.' });
     }
-    req.cliente = decoded; // { id, email, nome, tipo: 'cliente' }
+    req.cliente = decoded;
     next();
   } catch (err) {
     return res.status(401).json({ error: 'Sessão expirada. Faça login novamente.' });
   }
 }
 
-// Versão "opcional": se vier um token de cliente válido, anexa req.cliente;
-// caso contrário, segue em frente normalmente (usado no checkout, que
-// aceita tanto compra como visitante quanto compra logado).
 function attachCustomerIfPresent(req, res, next) {
   const authHeader = req.headers.authorization;
   if (authHeader && authHeader.startsWith('Bearer ')) {
@@ -38,7 +31,6 @@ function attachCustomerIfPresent(req, res, next) {
         req.cliente = decoded;
       }
     } catch (err) {
-      // token inválido/expirado: apenas ignora e segue como visitante
     }
   }
   next();

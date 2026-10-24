@@ -21,21 +21,8 @@ const contentImageRoutes = require('./routes/contentImageRoutes');
 
 const app = express();
 
-// O Render (e praticamente toda hospedagem em nuvem) coloca a aplicação
-// atrás de um proxy reverso, que repassa o IP real do visitante no
-// cabeçalho "X-Forwarded-For". Sem avisar o Express disso, o middleware de
-// limite de tentativas (express-rate-limit) trava a requisição inteira com
-// erro — é por isso que login, cadastro, etc paravam de funcionar quando
-// publicado, mesmo funcionando perfeitamente local.
 app.set('trust proxy', 1);
 
-// ---------- Middlewares globais ----------
-
-// Cabeçalhos de segurança HTTP (proteção contra clickjacking, sniffing de
-// tipo de conteúdo, etc). Desligamos o CSP e o "cross-origin resource
-// policy" padrão porque este servidor é uma API pura (não renderiza HTML)
-// e precisa deixar o frontend, rodando em outra porta/domínio, carregar as
-// fotos de produtos normalmente.
 app.use(
   helmet({
     contentSecurityPolicy: false,
@@ -43,7 +30,6 @@ app.use(
   })
 );
 
-// CORS: só permite requisições vindas do endereço do frontend configurado no .env
 app.use(
   cors({
     origin: process.env.FRONTEND_URL || '*',
@@ -54,13 +40,10 @@ app.use(
 app.use(express.json({ limit: '2mb' }));
 app.use(express.urlencoded({ extended: true }));
 
-// Sanitização básica contra XSS em todo corpo de requisição recebido
 app.use(sanitizeInputs);
 
-// Serve as imagens de produtos enviadas via upload
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// ---------- Rotas da API ----------
 app.use('/api/auth', authRoutes);
 app.use('/api/clientes', customerRoutes);
 app.use('/api/categorias', categoryRoutes);
@@ -71,10 +54,6 @@ app.use('/api/pagamentos', paymentRoutes);
 app.use('/api/frete', melhorEnvioRoutes);
 app.use('/api/conteudo-imagens', contentImageRoutes);
 
-// Algumas integrações (como o Melhor Envio) testam se o "Site da
-// plataforma" cadastrado responde de verdade, batendo direto na raiz do
-// domínio — sem essa rota, isso dava 404 e podia atrapalhar a validação
-// do aplicativo do lado deles.
 app.get('/', (req, res) => {
   res.json({ status: 'ok', service: 'Cristal Floricultura API' });
 });
@@ -83,15 +62,11 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', service: 'Cristal Floricultura API' });
 });
 
-// ---------- Tratamento de erros ----------
 app.use(notFoundHandler);
 app.use(errorHandler);
 
 const PORT = process.env.PORT || 5000;
 
-// Alerta de segurança: um JWT_SECRET fraco ou ausente permite que qualquer
-// pessoa forje tokens de login válidos. Isso não impede o servidor de
-// rodar (para não travar testes locais), mas avisa bem claro no log.
 if (!process.env.JWT_SECRET || process.env.JWT_SECRET.length < 20) {
   console.warn(
     '\n⚠️  AVISO DE SEGURANÇA: JWT_SECRET ausente ou muito curto no .env. ' +
@@ -99,16 +74,11 @@ if (!process.env.JWT_SECRET || process.env.JWT_SECRET.length < 20) {
   );
 }
 
-// Na Vercel (serverless) não se chama app.listen — a própria plataforma
-// recebe o `app` exportado abaixo. Localmente / no Render, sobe normalmente.
 const iniciarServidor = async () => {
   console.log(`\nAPI Cristal Floricultura rodando em http://localhost:${PORT}`);
   await testConnection();
   await testarConexaoEmail();
 
-  // Diagnóstico do Mercado Pago: mostra só o TAMANHO das credenciais
-  // (nunca o valor), pra ajudar a identificar se alguma foi colada
-  // incompleta ou com espaço a mais.
   const { MP_ATIVO, MP_PUBLIC_KEY } = require('./config/mercadopago');
   if (MP_ATIVO) {
     console.log(

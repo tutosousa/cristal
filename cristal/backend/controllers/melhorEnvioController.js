@@ -1,6 +1,3 @@
-// Controla o "login" (OAuth2) do admin com o Melhor Envio: iniciar a
-// autorização, receber o retorno, e consultar/encerrar a conexão.
-
 const jwt = require('jsonwebtoken');
 const {
   gerarUrlAutorizacao,
@@ -56,9 +53,6 @@ async function callback(req, res) {
   const stateValido = state && (await validarState(state));
   const ehDiagnostico = Boolean(state) && state.startsWith('DIAG_');
   if (!code || !stateValido) {
-    // Diagnóstico: mostra exatamente qual das duas partes falhou, sem
-    // expor o "code"/"state" inteiros no log (só um pedacinho, o
-    // suficiente pra conferir sem virar um segredo exposto).
     console.error(
       `Callback do Melhor Envio com estado inválido — code presente: ${Boolean(code)}, ` +
       `state presente: ${Boolean(state)}, state válido no banco: ${stateValido}, ` +

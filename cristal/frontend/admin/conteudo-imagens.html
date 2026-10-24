@@ -33,8 +33,6 @@
       </div>
     </div>
 
-    <!-- Abas: as imagens das duas marcas nunca se misturam — cada uma só
-         altera o seu próprio site. -->
     <div class="sub-abas-pedidos" style="margin-bottom:24px; background:#fff; border:1px solid var(--admin-linha, #e7e5e0); border-radius:3px;">
       <a href="#" data-aba="cristal" class="ativo">Cristal Floricultura</a>
       <a href="#" data-aba="pan-cristal">Pan Cristal</a>
@@ -63,8 +61,6 @@
 exigirLoginAdmin();
 montarSidebarAdmin('conteudo-imagens');
 
-// Arquivo escolhido (ainda não enviado) por chave "site:chave" — guardado
-// em memória só até o admin clicar em "Salvar".
 const arquivosSelecionados = {};
 
 function iconeUpload() {
@@ -130,8 +126,6 @@ function ligarEventosItem(site, chave) {
     botaoSalvar.disabled = false;
     alertaItem.innerHTML = '';
 
-    // Prévia antes de salvar — substitui a caixa de preview (foto ou
-    // texto "nenhuma imagem") pela nova imagem escolhida, só visualmente.
     const reader = new FileReader();
     reader.onload = (ev) => {
       const caixa = previewAnterior.closest('.galeria-admin-item');
@@ -178,9 +172,6 @@ function ligarEventosItem(site, chave) {
     try {
       await apiFetchAdmin(`/conteudo-imagens/${site}/${chave}`, { method: 'DELETE' });
 
-      // Localiza a caixa de preview a partir do próprio botão (sempre
-      // presente no DOM) em vez do elemento de preview antigo, que pode já
-      // ter sido substituído por uma prévia local ainda não salva.
       const caixaPreview = botaoRemover.closest('.admin-painel').querySelector('.galeria-admin-item');
       if (caixaPreview) {
         caixaPreview.innerHTML = `<span id="preview-${site}-${chave}" class="texto-suave" style="font-size:0.78rem; text-align:center; padding:8px;">Nenhuma imagem enviada ainda</span>`;
@@ -191,8 +182,6 @@ function ligarEventosItem(site, chave) {
       botaoRemover.textContent = 'Remover imagem';
       botaoRemover.disabled = false;
 
-      // Se havia um arquivo pendente (selecionado mas não salvo), descarta —
-      // a remoção age sobre a imagem já cadastrada no servidor.
       delete arquivosSelecionados[`${site}:${chave}`];
       input.value = '';
       status.textContent = 'Nenhuma imagem selecionada';
@@ -218,7 +207,6 @@ async function carregarImagensSite(site, containerId) {
   }
 }
 
-// Abas
 document.querySelectorAll('[data-aba]').forEach((aba) => {
   aba.addEventListener('click', (e) => {
     e.preventDefault();

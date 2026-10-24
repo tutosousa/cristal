@@ -1,6 +1,3 @@
-// Middleware de autenticação do painel administrativo.
-// Protege rotas exigindo um token JWT válido no cabeçalho Authorization.
-
 const jwt = require('jsonwebtoken');
 
 function requireAdminAuth(req, res, next) {
@@ -17,7 +14,7 @@ function requireAdminAuth(req, res, next) {
     if (decoded.tipo !== 'admin') {
       return res.status(403).json({ error: 'Token inválido para esta operação.' });
     }
-    req.admin = decoded; // { id, email, nome, tipo: 'admin' }
+    req.admin = decoded;
     next();
   } catch (err) {
     return res.status(401).json({ error: 'Token inválido ou expirado. Faça login novamente.' });

@@ -1,6 +1,3 @@
-// Funções compartilhadas de autenticação de CLIENTES da loja (compradores),
-// separado por completo do login do painel administrativo.
-
 const CLIENTE_TOKEN_KEY = 'cristal_cliente_token';
 const CLIENTE_INFO_KEY = 'cristal_cliente_info';
 
@@ -27,8 +24,6 @@ function logoutCliente() {
   window.location.href = 'index.html';
 }
 
-// Wrapper de fetch que inclui o header Authorization com o token do cliente
-// (usado nas telas de perfil e "meus pedidos").
 async function apiFetchCliente(path, options = {}) {
   const response = await fetch(`${API_BASE_URL}${path}`, {
     ...options,
@@ -45,7 +40,6 @@ async function apiFetchCliente(path, options = {}) {
   try {
     data = await response.json();
   } catch (e) {
-    /* sem corpo */
   }
 
   if (response.status === 401) {
@@ -60,10 +54,6 @@ async function apiFetchCliente(path, options = {}) {
   return data;
 }
 
-// Atualiza o link "Entrar" do cabeçalho para "Olá, Fulano" / "Minha conta"
-// quando o visitante já estiver logado como cliente. No celular, mostra só
-// "Conta" (compacto) em vez do nome completo — nomes longos empurravam o
-// botão do carrinho pra fora da linha, quebrando o layout.
 function atualizarLinkConta(elementId) {
   const link = document.getElementById(elementId);
   if (!link) return;
@@ -81,9 +71,6 @@ function atualizarLinkConta(elementId) {
   }
 }
 
-// Redireciona para o login se o visitante não estiver logado — e, depois
-// de logar, traz a pessoa de volta exatamente pra página de onde ela veio,
-// em vez de perder o contexto.
 function exigirLoginCliente() {
   if (!obterTokenCliente()) {
     const paginaAtual = window.location.pathname.split('/').pop() + window.location.search;

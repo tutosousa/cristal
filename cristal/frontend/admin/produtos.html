@@ -54,7 +54,6 @@
   </main>
 </div>
 
-<!-- Modal de criação/edição de produto -->
 <div class="modal-fundo" id="modal-produto" style="display:none;">
   <div class="modal-caixa">
     <h2 id="modal-titulo">Novo produto</h2>
@@ -335,8 +334,6 @@ async function recarregarProdutoNoModal() {
   return produto;
 }
 
-// ---------- Cores (cards visuais, cada uma com sua própria foto) ----------
-
 function renderizarCores(produto) {
   const cores = produto.cores || [];
   const imagens = produto.imagens || [];
@@ -373,7 +370,6 @@ function renderizarCores(produto) {
       `;
     }).join('');
 
-    // Botão remover cor
     container.querySelectorAll('[data-remover-cor]').forEach((btn) => {
       btn.addEventListener('click', async () => {
         if (!confirm('Remover esta cor? A foto vinculada a ela deixa de aparecer como opção de cor (mas não é apagada, vira uma foto geral do produto).')) return;
@@ -387,7 +383,6 @@ function renderizarCores(produto) {
       });
     });
 
-    // Botão remover a foto específica de uma cor
     container.querySelectorAll('[data-remover-foto-cor]').forEach((btn) => {
       btn.addEventListener('click', async () => {
         if (!confirm('Remover esta foto?')) return;
@@ -401,8 +396,6 @@ function renderizarCores(produto) {
       });
     });
 
-    // Upload direto de foto pra cor específica — um clique só, já sobe a
-    // foto E já vincula ela àquela cor, sem etapa nenhuma no meio.
     container.querySelectorAll('.input-foto-cor').forEach((input) => {
       input.addEventListener('change', async (e) => {
         const arquivo = e.target.files[0];
@@ -426,10 +419,6 @@ function renderizarCores(produto) {
     });
   }
 
-  // Fotos que não pertencem a nenhuma cor. A que bate com produto.imagem_url
-  // é A foto principal (só existe uma) — separamos ela visualmente das
-  // demais, que ficam como "fotos adicionais". Sem essa separação, todas
-  // pareciam "principal" igualmente, o que confundia bastante no admin.
   const fotosGerais = imagens.filter((img) => !img.cor_id);
   const fotoPrincipal = fotosGerais.find((img) => img.imagem_url === produto.imagem_url) || null;
   const fotosAdicionais = fotosGerais.filter((img) => img !== fotoPrincipal);
@@ -530,8 +519,6 @@ document.getElementById('btn-add-cor').addEventListener('click', async () => {
   }
 });
 
-// ---------- Tamanhos ----------
-
 let ultimoProdutoCarregado = null;
 
 function renderizarEstoqueVariacoes(produto) {
@@ -542,8 +529,6 @@ function renderizarEstoqueVariacoes(produto) {
   const tamanhos = produto.tamanhos || [];
   const variacoes = produto.variacoes || [];
 
-  // Sem cor nem tamanho cadastrados: não faz sentido mostrar a matriz —
-  // esse produto continua usando o campo "Estoque" simples, de sempre.
   if (cores.length === 0 && tamanhos.length === 0) {
     secao.style.display = 'none';
     return;
@@ -555,8 +540,6 @@ function renderizarEstoqueVariacoes(produto) {
     return v ? v.estoque : 0;
   }
 
-  // Monta a matriz: linhas = cores (ou "Todos os produtos" se não tiver cor),
-  // colunas = tamanhos (ou uma coluna única "Estoque" se não tiver tamanho).
   const linhasCores = cores.length > 0 ? cores : [{ id: null, nome: 'Todos os produtos' }];
   const colunasTamanhos = tamanhos.length > 0 ? tamanhos : [{ id: null, tamanho: 'Estoque' }];
 

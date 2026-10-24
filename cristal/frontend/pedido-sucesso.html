@@ -46,8 +46,8 @@
       </div>
       <p class="texto-suave">Flores, buquês, cestas e presentes preparados com carinho para tornar cada momento inesquecível. Surubim — PE.</p>
       <div class="site-footer__social">
-        <a href="https://wa.me/5581999999999" target="_blank" rel="noopener" aria-label="WhatsApp">WhatsApp</a>
-        <a href="https://instagram.com" target="_blank" rel="noopener" aria-label="Instagram">Instagram</a>
+        <a href="https://wa.me/558185010010" target="_blank" rel="noopener" aria-label="WhatsApp">WhatsApp</a>
+        <a href="https://www.instagram.com/cristalfloricultura_/" target="_blank" rel="noopener" aria-label="Instagram">Instagram</a>
       </div>
     </div>
 
@@ -71,7 +71,7 @@
     <div class="site-footer__coluna">
       <h4>Fale com a gente</h4>
       <ul class="site-footer__contato">
-        <li><a href="https://wa.me/5581999999999" target="_blank" rel="noopener">WhatsApp: (81) 99999-9999</a></li>
+        <li><a href="https://wa.me/558185010010" target="_blank" rel="noopener">WhatsApp: (81) 8501-0010</a></li>
         <li><a href="mailto:contato@cristalfloricultura.com.br">E-mail: contato@cristalfloricultura.com.br</a></li>
         <li>Seg. a Sáb., 8h às 18h</li>
       </ul>
@@ -113,9 +113,6 @@ async function carregarPedido() {
       ? '<div class="alerta alerta-erro">Este pagamento não foi aprovado. Você pode tentar novamente ou falar com a gente pelo WhatsApp.</div>'
       : '<div class="alerta" style="background:#fff8e6; color:#8a6d00; border:1px solid #f0e0a8;">Estamos aguardando a confirmação do seu pagamento. Se você ainda não pagou, clica no botão abaixo pra fazer isso agora.</div>';
 
-    // "Pagar agora" só aparece pra pedidos ainda pendentes — é o que
-    // permite voltar aqui mais tarde (mesmo depois de fechar a aba) e
-    // terminar de pagar, em vez de perder o pedido.
     const botaoPagar = pedido.status === 'pendente'
       ? `<button type="button" class="btn btn-primario btn-bloco btn-grande" id="btn-pagar-agora" style="margin-top:16px;">Pagar agora</button>`
       : '';
@@ -157,10 +154,6 @@ async function carregarPedido() {
   }
 }
 
-// Reabre o mesmo formulário de pagamento (Payment Brick) pra um pedido que
-// já existe mas ainda não foi pago — a pessoa pode voltar nesta página a
-// qualquer momento (o link fica salvo na URL) e terminar de pagar, sem
-// precisar refazer o pedido do zero.
 async function iniciarPagamentoRetomado(total, emailPagador) {
   const areaEl = document.getElementById('area-pagamento');
   areaEl.innerHTML = `<div id="brick-container-retomado"></div><div id="resultado-pagamento-retomado"></div>`;
@@ -169,7 +162,7 @@ async function iniciarPagamentoRetomado(total, emailPagador) {
   try {
     const config = await apiFetch('/pagamentos/config');
     if (!config.ativo || !config.publicKey) {
-      resultadoEl.innerHTML = `<div class="alerta alerta-erro">O pagamento online ainda não foi configurado pela loja. <a href="https://wa.me/5581999999999" target="_blank" rel="noopener">Entre em contato pelo WhatsApp</a> para finalizar seu pedido ${escapeHtml(numero)}.</div>`;
+      resultadoEl.innerHTML = `<div class="alerta alerta-erro">O pagamento online ainda não foi configurado pela loja. <a href="https://wa.me/558185010010" target="_blank" rel="noopener">Entre em contato pelo WhatsApp</a> para finalizar seu pedido ${escapeHtml(numero)}.</div>`;
       return;
     }
 

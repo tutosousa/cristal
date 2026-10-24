@@ -1,8 +1,3 @@
-// Gerencia o "login" (OAuth2) com o Melhor Envio: gera a URL de
-// autorização, troca o código pelo token, guarda no banco, e renova
-// sozinho quando o token estiver perto de vencer — assim o resto do
-// sistema nunca precisa se preocupar com isso, só chama obterTokenValido().
-
 const crypto = require('crypto');
 const { pool } = require('../config/db');
 const {
@@ -14,17 +9,7 @@ const {
   obterRedirectUri,
 } = require('../config/melhorEnvio');
 
-// Guarda os "state" (proteção contra CSRF) gerados ao iniciar a
-// autorização, NO BANCO DE DADOS — não em memória — pra sobreviver caso o
-// servidor reinicie ou "durma" (comum em planos gratuitos como o Render)
-// entre o clique em "Conectar" e a volta autorizada do Melhor Envio.
-
 async function gerarUrlAutorizacao(modoDiagnostico = false) {
-  // No modo diagnóstico, prefixamos o "state" com "DIAG_" — isso deixa
-  // marcado, só pra essa tentativa específica, que o callback deve MOSTRAR
-  // o código na tela em vez de processar automaticamente. Serve pra dar
-  // pro suporte do Melhor Envio um código fresco (nunca usado) pra eles
-  // testarem a troca por token do lado deles.
   const state = (modoDiagnostico ? 'DIAG_' : '') + crypto.randomBytes(16).toString('hex');
 
   await pool.query('INSERT INTO melhor_envio_oauth_states (state) VALUES (?)', [state]);
@@ -63,15 +48,6 @@ async function salvarTokens(dados) {
   );
 }
 
-// Troca o "código" recebido no callback por um token de acesso de verdade.
-//
-// IMPORTANTE: o suporte do Melhor Envio confirmou, com um exemplo de
-// chamada funcionando de verdade, que essa rota espera o corpo no formato
-// "multipart/form-data" (não "application/x-www-form-urlencoded" como a
-// gente vinha usando, nem JSON). Por isso usamos FormData de verdade aqui
-// — e é importante NÃO definir o cabeçalho Content-Type manualmente nesse
-// caso: o fetch calcula sozinho o "boundary" correto do multipart, e
-// definir um Content-Type fixo aqui quebraria esse cálculo automático.
 async function trocarCodigoPorToken(code) {
   const redirectUri = obterRedirectUri();
 
@@ -101,8 +77,6 @@ async function trocarCodigoPorToken(code) {
   return dados;
 }
 
-// Pede um token novo usando o refresh_token guardado, quando o atual
-// estiver perto de vencer. Mesmo formato multipart/form-data do acima.
 async function renovarToken(refreshToken) {
   const corpo = new FormData();
   corpo.append('grant_type', 'refresh_token');
@@ -130,17 +104,11 @@ async function renovarToken(refreshToken) {
 }
 
 async function obterTokenValido() {
-  // Caminho mais simples: um "Token de Acesso Direto" gerado direto no
-  // painel do Melhor Envio (Integrações → Permissões de acesso) — não
-  // precisa de nenhum processo de "Conectar"/OAuth, é só usar esse token
-  // fixo. Se estiver configurado, usamos ele e nem olhamos pro OAuth.
   const tokenDireto = (process.env.MELHOR_ENVIO_ACCESS_TOKEN || '').trim();
   if (tokenDireto) {
     return tokenDireto;
   }
 
-  // Caminho OAuth (só entra aqui se o token direto acima não estiver
-  // configurado) — depende do admin ter clicado em "Conectar" no painel.
   const [rows] = await pool.query(
     'SELECT access_token, refresh_token, expira_em FROM melhor_envio_conexao ORDER BY id DESC LIMIT 1'
   );
@@ -148,7 +116,7 @@ async function obterTokenValido() {
   if (rows.length === 0) return null;
 
   const conexao = rows[0];
-  const margemSeguranca = 2 * 24 * 60 * 60 * 1000; // renova 2 dias antes de vencer
+  const margemSeguranca = 2 * 24 * 60 * 60 * 1000;
   const jaVenceOuVaiVencerLogo = new Date(conexao.expira_em).getTime() - Date.now() < margemSeguranca;
 
   if (jaVenceOuVaiVencerLogo) {

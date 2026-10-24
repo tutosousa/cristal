@@ -1,6 +1,3 @@
-// Contas de clientes da loja: cadastro com confirmação por e-mail, login
-// em duas etapas (2FA), perfil/endereço e histórico de pedidos.
-
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { pool } = require('../config/db');
@@ -10,14 +7,10 @@ const { solicitarRecuperacao, redefinirSenhaComCodigo } = require('../services/p
 const MINUTOS_EXPIRACAO_CODIGO = 10;
 
 function gerarCodigo() {
-  return String(Math.floor(100000 + Math.random() * 900000)); // 6 dígitos
+  return String(Math.floor(100000 + Math.random() * 900000));
 }
 
 function gerarToken(cliente) {
-  // Sessão do cliente dura bem mais tempo que a do admin (30 dias, o
-  // padrão de "continuar logado" que qualquer loja usa) — a etapa de
-  // 2FA continua acontecendo normalmente no login, isso só evita a
-  // pessoa precisar refazer login toda vez que fechar o navegador.
   return jwt.sign(
     { id: cliente.id, email: cliente.email, nome: cliente.nome, tipo: 'cliente' },
     process.env.JWT_SECRET,
@@ -29,8 +22,6 @@ async function criarESalvarCodigo(clienteId, tipo) {
   const codigo = gerarCodigo();
   const expiraEm = new Date(Date.now() + MINUTOS_EXPIRACAO_CODIGO * 60 * 1000);
 
-  // Invalida códigos anteriores do mesmo tipo ainda não usados, pra evitar
-  // confusão de qual código é o válido caso a pessoa peça mais de um.
   await pool.query(
     'UPDATE codigos_verificacao SET usado = 1 WHERE cliente_id = ? AND tipo = ? AND usado = 0',
     [clienteId, tipo]
@@ -56,8 +47,6 @@ async function validarCodigo(clienteId, codigo, tipo) {
   await pool.query('UPDATE codigos_verificacao SET usado = 1 WHERE id = ?', [rows[0].id]);
   return true;
 }
-
-// ---------- CADASTRO (com confirmação por e-mail) ----------
 
 async function cadastrar(req, res, next) {
   try {
@@ -102,8 +91,6 @@ async function cadastrar(req, res, next) {
     res.status(201).json({
       message: 'Conta criada! Verifique o código enviado para o seu e-mail.',
       cliente_id: clienteId,
-      // Em modo simulado (sem SMTP configurado), o código vem na resposta
-      // só para permitir testar localmente sem precisar de e-mail de verdade.
       codigo_simulado: envio.simulado ? codigo : undefined,
     });
   } catch (err) {
@@ -154,10 +141,6 @@ async function reenviarCodigoCadastro(req, res, next) {
   }
 }
 
-// ---------- LOGIN EM DUAS ETAPAS ----------
-
-// Etapa 1: confere e-mail + senha. Se corretos, envia um código de acesso
-// por e-mail em vez de já devolver o token de login.
 async function login(req, res, next) {
   try {
     const { email, senha } = req.body;
@@ -204,7 +187,6 @@ async function login(req, res, next) {
   }
 }
 
-// Etapa 2: confere o código de acesso e só aí devolve o token de sessão.
 async function verificarLogin(req, res, next) {
   try {
     const { cliente_id, codigo } = req.body;
@@ -243,8 +225,6 @@ async function reenviarCodigoLogin(req, res, next) {
     next(err);
   }
 }
-
-// ---------- PERFIL / PEDIDOS (rotas protegidas) ----------
 
 async function meuPerfil(req, res, next) {
   try {
@@ -321,9 +301,6 @@ async function atualizarPerfil(req, res, next) {
 
 async function meusPedidos(req, res, next) {
   try {
-    // Traz TODOS os pedidos do cliente (incluindo entregues e cancelados)
-    // — o frontend é quem organiza cada um na aba certa (Pedidos /
-    // Entregues / Cancelados), com base no status real de cada um.
     const [pedidos] = await pool.query(
       'SELECT * FROM pedidos WHERE cliente_id = ? ORDER BY criado_em DESC',
       [req.cliente.id]
@@ -333,8 +310,6 @@ async function meusPedidos(req, res, next) {
     next(err);
   }
 }
-
-// ---------- Recuperação de senha ("Esqueci minha senha") ----------
 
 async function esqueciSenha(req, res, next) {
   try {

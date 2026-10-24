@@ -1,9 +1,6 @@
 const { pool } = require('../config/db');
 const { urlDoArquivo } = require('../services/storage');
 
-// ---------- ROTAS PÚBLICAS (Loja Virtual) ----------
-
-// Lista produtos ativos para a vitrine. Nunca expõe preço de custo.
 async function listPublicProducts(req, res, next) {
   try {
     const { categoria } = req.query;
@@ -32,8 +29,6 @@ async function listPublicProducts(req, res, next) {
   }
 }
 
-// Detalhe de um único produto (público) — inclui galeria, cores (cada uma
-// com suas próprias fotos) e tamanhos disponíveis.
 async function getPublicProduct(req, res, next) {
   try {
     const { id } = req.params;
@@ -68,8 +63,6 @@ async function getPublicProduct(req, res, next) {
       [id]
     );
 
-    // Fotos "gerais" (sem cor vinculada) — mostradas quando nenhuma cor
-    // está selecionada, ou como fallback se a cor escolhida não tiver fotos.
     const galeriaGeral = [];
     if (rows[0].imagem_url) galeriaGeral.push(rows[0].imagem_url);
     imagens
@@ -78,7 +71,6 @@ async function getPublicProduct(req, res, next) {
         if (img.imagem_url !== rows[0].imagem_url) galeriaGeral.push(img.imagem_url);
       });
 
-    // Monta, pra cada cor, a lista de fotos vinculadas a ela.
     const coresComFotos = cores.map((cor) => ({
       ...cor,
       galeria: imagens.filter((img) => img.cor_id === cor.id).map((img) => img.imagem_url),
@@ -96,9 +88,6 @@ async function getPublicProduct(req, res, next) {
   }
 }
 
-// ---------- ROTAS ADMIN (Painel) ----------
-
-// Lista todos os produtos, incluindo preço de custo e inativos (admin)
 async function listAdminProducts(req, res, next) {
   try {
     const [rows] = await pool.query(
@@ -113,8 +102,6 @@ async function listAdminProducts(req, res, next) {
   }
 }
 
-// Detalhe de um produto para o admin editar (preço de custo, galeria com
-// a cor de cada foto, lista de cores e de tamanhos)
 async function getAdminProduct(req, res, next) {
   try {
     const { id } = req.params;
@@ -144,10 +131,6 @@ async function getAdminProduct(req, res, next) {
   }
 }
 
-// Salva de uma vez só o estoque de cada combinação cor+tamanho de um
-// produto (a "tabela" que o admin preenche na tela). Recebe um array:
-// [{ cor_id, tamanho_id, estoque }, ...] — cor_id e/ou tamanho_id podem
-// vir null se o produto não usa aquela variação.
 async function salvarVariacoesEstoque(req, res, next) {
   try {
     const { id } = req.params;
@@ -198,17 +181,11 @@ async function createProduct(req, res, next) {
       });
     }
 
-    // "Este produto contém flores?" é sempre uma escolha explícita do admin
-    // no formulário (Sim/Não) — nunca inferida do nome/categoria do produto.
-    // Aceita os formatos que o front pode mandar (checkbox marcado manda
-    // 'true'/'on'/'1'; desmarcado normalmente nem envia o campo).
     const possuiFloresBool = ['true', 'on', '1', 1, true].includes(possui_flores);
 
-    // req.files vem do multer configurado com upload.array('imagens', 8):
-    // pode conter 0, 1 ou várias fotos enviadas de uma vez.
     const arquivos = req.files || [];
     const urls = arquivos.map((f) => urlDoArquivo(f));
-    const imagem_url = urls[0] || null; // a primeira foto vira a "capa"
+    const imagem_url = urls[0] || null;
 
     const [result] = await pool.query(
       `INSERT INTO produtos
@@ -237,7 +214,6 @@ async function createProduct(req, res, next) {
 
     const produtoId = result.insertId;
 
-    // Salva todas as fotos (incluindo a capa) na galeria, mantendo a ordem de envio
     if (urls.length > 0) {
       const valores = urls.map((url, index) => [produtoId, url, index]);
       await pool.query(
@@ -278,9 +254,6 @@ async function updateProduct(req, res, next) {
       return res.status(404).json({ error: 'Produto não encontrado.' });
     }
 
-    // "Este produto contém flores?" só muda quando o campo é explicitamente
-    // enviado no formulário de edição — se não vier no corpo da requisição,
-    // mantém o valor que já estava salvo (não assume "não" silenciosamente).
     const possuiFloresFinal =
       possui_flores === undefined
         ? existing[0].possui_flores
@@ -291,10 +264,6 @@ async function updateProduct(req, res, next) {
     const arquivos = req.files || [];
     const novasUrls = arquivos.map((f) => urlDoArquivo(f));
 
-    // Se novas fotos foram enviadas, elas são ADICIONADAS à galeria existente
-    // (não substituem automaticamente) — o admin remove fotos antigas à parte,
-    // pela tela de edição, se quiser. Se veio um "cor_id" no corpo, essas
-    // fotos novas já nascem vinculadas àquela cor.
     if (novasUrls.length > 0) {
       const corIdDestino = req.body.cor_id ? Number(req.body.cor_id) : null;
       const [{ maxOrdem }] = (
@@ -310,7 +279,6 @@ async function updateProduct(req, res, next) {
       );
     }
 
-    // A "capa" só muda se o produto ainda não tinha nenhuma foto
     const imagem_url = existing[0].imagem_url || novasUrls[0] || null;
 
     await pool.query(
@@ -347,7 +315,6 @@ async function updateProduct(req, res, next) {
   }
 }
 
-// Remove uma foto específica da galeria de um produto
 async function deleteProductImage(req, res, next) {
   try {
     const { id, imagemId } = req.params;
@@ -362,8 +329,6 @@ async function deleteProductImage(req, res, next) {
 
     await pool.query('DELETE FROM produto_imagens WHERE id = ?', [imagemId]);
 
-    // Se a foto removida era a capa do produto, promove a próxima foto da
-    // galeria (se houver) a nova capa.
     const [produtoRows] = await pool.query('SELECT imagem_url FROM produtos WHERE id = ?', [id]);
     if (produtoRows[0] && produtoRows[0].imagem_url === rows[0].imagem_url) {
       const [restantes] = await pool.query(
@@ -380,11 +345,10 @@ async function deleteProductImage(req, res, next) {
   }
 }
 
-// Vincula (ou desvincula) uma foto já existente a uma cor do produto
 async function setImagemCor(req, res, next) {
   try {
     const { id, imagemId } = req.params;
-    const { cor_id } = req.body; // null/vazio = desvincula (vira foto "geral")
+    const { cor_id } = req.body;
 
     const [rows] = await pool.query(
       'SELECT id FROM produto_imagens WHERE id = ? AND produto_id = ?',
@@ -414,12 +378,6 @@ async function deleteProduct(req, res, next) {
       return res.status(404).json({ error: 'Produto não encontrado.' });
     }
 
-    // Exclusão de verdade (não é só marcar como inativo) — as fotos, cores
-    // e tamanhos desse produto são apagados automaticamente junto (o banco
-    // está configurado com ON DELETE CASCADE nessas tabelas). Pedidos
-    // antigos que já continham esse produto continuam intactos: eles
-    // guardam o nome e o preço de quando a compra foi feita, então o
-    // histórico do cliente e do financeiro não é afetado.
     await pool.query('DELETE FROM produtos WHERE id = ?', [id]);
 
     res.json({ message: 'Produto excluído com sucesso.' });
@@ -427,8 +385,6 @@ async function deleteProduct(req, res, next) {
     next(err);
   }
 }
-
-// ---------- Cores do produto ----------
 
 async function createColor(req, res, next) {
   try {
@@ -475,16 +431,12 @@ async function updateColor(req, res, next) {
 async function deleteColor(req, res, next) {
   try {
     const { corId } = req.params;
-    // As fotos que estavam vinculadas a essa cor voltam a ser fotos
-    // "gerais" automaticamente (FK com ON DELETE SET NULL).
     await pool.query('DELETE FROM produto_cores WHERE id = ?', [corId]);
     res.json({ message: 'Cor removida.' });
   } catch (err) {
     next(err);
   }
 }
-
-// ---------- Tamanhos do produto ----------
 
 async function createSize(req, res, next) {
   try {
@@ -520,9 +472,6 @@ async function deleteSize(req, res, next) {
   }
 }
 
-// Troca a foto principal do produto pra uma foto já existente na galeria
-// (geral, sem cor) — a antiga simplesmente deixa de ser a principal, sem
-// apagar nada, ela só passa a ser tratada como uma foto adicional comum.
 async function definirFotoPrincipal(req, res, next) {
   try {
     const { id } = req.params;

@@ -1,14 +1,3 @@
-// Lista única (fonte da verdade) de quais imagens de conteúdo cada site
-// aceita, e o rótulo que o admin vê pra cada uma. O controller usa isso
-// pra validar a "chave" recebida (nunca aceita uma chave qualquer), e a
-// rota pública de listagem usa isso pra sempre devolver todas as chaves
-// conhecidas — mesmo as que o admin ainda não configurou nenhuma imagem
-// (nesse caso "imagem_url" vem null e o frontend usa o visual padrão).
-//
-// IMPORTANTE: isto é só para imagens de COMPOSIÇÃO/CONTEÚDO (banners,
-// destaques, fotos ilustrativas de seção). Fotos de produto e de
-// categoria já têm seus próprios campos/tabelas e não entram aqui.
-
 const CHAVES_CRISTAL = [
   { chave: 'hero_principal', label: 'Banner principal (Hero da home)' },
   { chave: 'destaque_presentes', label: 'Destaque — "Presentes para toda ocasião"' },
@@ -35,9 +24,6 @@ const CHAVES_PAN_CRISTAL = [
   { chave: 'galeria_6', label: 'Galeria — Salgados' },
 ];
 
-// "site" na URL da API usa hífen (consistente com o resto do projeto,
-// ex: pan-cristal.html), mas o banco usa underscore (ENUM não aceita
-// hífen sem aspas o tempo todo e underscore é mais seguro em SQL).
 const SITES = {
   cristal: { bancoSite: 'cristal', chaves: CHAVES_CRISTAL },
   'pan-cristal': { bancoSite: 'pan_cristal', chaves: CHAVES_PAN_CRISTAL },

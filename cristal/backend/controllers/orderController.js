@@ -5,14 +5,10 @@ const { enviarEmailNovoPedidoEmpresa, enviarEmailConfirmacaoCliente } = require(
 const {
   listarCidadesEntrega,
   buscarCidadeEntrega,
-  cidadeExigePontoReferencia,
   separarMunicipioUf,
   PONTO_REFERENCIA_PADRAO,
 } = require('../services/entregaLocal');
 
-// Rota pública usada pelo checkout para montar a lista de cidades de
-// entrega local de flores (nome + valor) — os mesmos dados que o backend
-// usa para validar e recalcular o frete, então nunca ficam dessincronizados.
 async function getCidadesEntrega(req, res) {
   res.json(listarCidadesEntrega());
 }
@@ -23,8 +19,6 @@ function gerarNumeroPedido() {
   return `CRIS-${timestamp}${aleatorio}`;
 }
 
-// Endpoint usado pelo checkout para mostrar as opções de frete (com preço
-// e prazo de cada transportadora) antes de o cliente confirmar o pedido.
 async function getShippingQuote(req, res, next) {
   try {
     const { cep, itens } = req.body;
@@ -54,13 +48,6 @@ async function getShippingQuote(req, res, next) {
 
 const QUANTIDADE_MINIMA_PEDIDO_ATACADO = 12;
 
-// Cria um pedido (checkout).
-//
-// - Se MP_ACCESS_TOKEN estiver configurado: cria o pedido como "pendente" e
-//   uma preferência de pagamento no Mercado Pago, devolvendo a URL de
-//   pagamento (init_point) para o front redirecionar o comprador.
-// - Se não estiver configurado (modo simulado/demonstração): aprova o
-//   pedido na hora, sem cobrança real, só pra poder testar o fluxo completo.
 async function createOrder(req, res, next) {
   const connection = await pool.getConnection();
   try {
@@ -73,29 +60,19 @@ async function createOrder(req, res, next) {
       endereco_estado,
       endereco_cep,
       forma_pagamento,
-      tipo_pedido, // 'varejo' (padrão) ou 'atacado'
-      itens, // [{ produto_id, quantidade }]
+      tipo_pedido,
+      itens,
     } = req.body;
 
-    // O checkout agora exige login — nome e e-mail vêm da CONTA autenticada
-    // (não do formulário), pra ninguém conseguir forjar em nome de outra
-    // pessoa. O telefone de contato continua vindo do formulário, já que
-    // pode ser diferente do telefone cadastrado na conta.
     const cliente_nome = req.cliente.nome;
     const cliente_email = req.cliente.email;
 
     const tipoPedido = tipo_pedido === 'atacado' ? 'atacado' : 'varejo';
 
-    // O endereço completo (rua/estado/CEP) só é obrigatório aqui pra pedidos
-    // que vão usar o Melhor Envio — carrinhos com flores usam a entrega local
-    // por cidade (validada mais abaixo, depois de sabermos se há flores no
-    // carrinho) e não pedem esses campos no checkout.
     if (!cliente_nome || !cliente_telefone || !itens || itens.length === 0) {
       return res.status(400).json({ error: 'Dados do pedido incompletos.' });
     }
 
-    // No pedido de atacado, a quantidade TOTAL do carrinho (somando todos
-    // os produtos) precisa atingir o mínimo de 12 peças.
     if (tipoPedido === 'atacado') {
       const totalPecas = itens.reduce((soma, item) => soma + (Number(item.quantidade) || 0), 0);
       if (totalPecas < QUANTIDADE_MINIMA_PEDIDO_ATACADO) {
@@ -107,7 +84,6 @@ async function createOrder(req, res, next) {
 
     await connection.beginTransaction();
 
-    // Busca preços reais no banco (nunca confia no preço enviado pelo front)
     let subtotal = 0;
     const itensProcessados = [];
 
@@ -129,11 +105,6 @@ async function createOrder(req, res, next) {
 
       if (quantidade <= 0) continue;
 
-      // Se o cliente escolheu cor e/ou tamanho, e o produto tem estoque
-      // configurado especificamente pra essa combinação, o controle de
-      // estoque é feito ali (uma cor/tamanho não mexe no estoque de outra
-      // combinação). Senão, cai no estoque geral do produto — que é como
-      // sempre funcionou pra produtos sem variação.
       let variacaoId = null;
       let estoqueDisponivel = produto.estoque;
 
@@ -173,11 +144,6 @@ async function createOrder(req, res, next) {
         );
       }
 
-      // No pedido de atacado, TODOS os itens usam o preço de atacado do
-      // produto direto (a página de atacado já vende nesse preço, sem
-      // precisar bater 50 unidades DAQUELE produto individualmente).
-      // No pedido de varejo, o preço de atacado só é aplicado se a
-      // quantidade daquele item específico atingir o mínimo do produto.
       const isAtacado =
         tipoPedido === 'atacado'
           ? Boolean(produto.preco_atacado)
@@ -204,14 +170,9 @@ async function createOrder(req, res, next) {
         altura_cm: produto.altura_cm,
         largura_cm: produto.largura_cm,
         comprimento_cm: produto.comprimento_cm,
-        // Vem direto do banco, nunca do que o navegador mandou — é essa
-        // informação (e não o nome/categoria do produto) que decide o
-        // sistema de frete do pedido inteiro (ver mais abaixo).
         possui_flores: Boolean(produto.possui_flores),
       });
 
-      // Baixa de estoque — na combinação específica (se existir uma
-      // configurada pra ela) ou no estoque geral do produto, nunca nos dois.
       if (variacaoId) {
         await connection.query('UPDATE produto_variacoes SET estoque = estoque - ? WHERE id = ?', [
           quantidade,
@@ -229,21 +190,6 @@ async function createOrder(req, res, next) {
       throw Object.assign(new Error('O carrinho está vazio.'), { status: 400, expose: true });
     }
 
-// ------------------------------------------------------------------
-    // FRETE — decidido pelo BACKEND, nunca pelo que o navegador mandou.
-    //
-    // Regra de negócio (Cristal Floricultura): se PELO MENOS UM produto do
-    // carrinho tem flores (possui_flores = 1 no banco, verificado acima
-    // linha por linha), o pedido inteiro usa a ENTREGA LOCAL por cidade —
-    // mesmo que o carrinho também tenha produtos sem flores junto. Nesse
-    // caso o Melhor Envio é ignorado por completo: não é consultado, não
-    // aparece CEP/transportadora, e o valor vem só da tabela fixa de
-    // cidades (services/entregaLocal.js).
-    //
-    // Pedidos de atacado continuam com frete "a combinar" (0), como já
-    // funcionava — essa parte do fluxo não muda mesmo que o pedido tenha
-    // flores, pois o atacado já é tratado à parte com o cliente.
-    // ------------------------------------------------------------------
     let frete = 0;
     let freteDescricao = null;
     let fretePrazoDias = null;
@@ -268,24 +214,15 @@ async function createOrder(req, res, next) {
         );
       }
 
-      if (cidadeExigePontoReferencia(cidadeValida.cidade)) {
-        const pontoInformado = (req.body.ponto_referencia || '').trim();
-        if (!pontoInformado) {
-          throw Object.assign(
-            new Error('Informe um ponto de referência para a entrega em Recife.'),
-            { status: 400, expose: true }
-          );
-        }
-        pontoReferenciaSalvo = pontoInformado;
-      } else {
-        // Para as demais cidades, o ponto de referência é sempre "Centro"
-        // — decidido pelo sistema, não pelo que o cliente digitar (não há
-        // nem campo pra isso no checkout fora de Recife).
-        pontoReferenciaSalvo = PONTO_REFERENCIA_PADRAO;
+      const pontoInformado = String(req.body.ponto_referencia || '').trim();
+      if (pontoInformado.length > 150) {
+        throw Object.assign(
+          new Error('O ponto de referência deve ter no máximo 150 caracteres.'),
+          { status: 400, expose: true }
+        );
       }
+      pontoReferenciaSalvo = pontoInformado || PONTO_REFERENCIA_PADRAO;
 
-      // Valor SEMPRE recalculado a partir da tabela fixa — nunca do que o
-      // front mandou, mesmo que o front também envie um "frete" no corpo.
       frete = cidadeValida.valor;
       freteDescricao = 'Entrega local de flores — Cristal Floricultura';
       cidadeEntregaSalva = cidadeValida.cidade;
@@ -320,8 +257,6 @@ async function createOrder(req, res, next) {
     const total = subtotal + frete;
     const numeroPedido = gerarNumeroPedido();
 
-    // Se a compra foi feita por um cliente logado (token opcional verificado
-    // pelo middleware attachCustomerIfPresent), vincula o pedido à conta dele.
     const clienteId = req.cliente.id;
 
     const [pedidoResult] = await connection.query(
@@ -337,9 +272,6 @@ async function createOrder(req, res, next) {
         cliente_nome,
         cliente_telefone,
         cliente_email || null,
-        // Entrega local de flores não usa rua/número/bairro/CEP tradicionais
-        // (não há campo pra isso no checkout nesse fluxo) — só cidade/UF
-        // derivados da cidade de entrega e o ponto de referência.
         pedidoTemFlores && tipoPedido !== 'atacado' ? null : endereco_rua || null,
         pedidoTemFlores && tipoPedido !== 'atacado' ? null : endereco_numero || null,
         pedidoTemFlores && tipoPedido !== 'atacado' ? null : endereco_bairro || null,
@@ -381,22 +313,12 @@ async function createOrder(req, res, next) {
       );
     }
 
-    // Não criamos mais uma "preferência" com redirecionamento aqui: o
-    // pagamento agora acontece de forma invisível, direto na página de
-    // checkout (Payment Brick). Se o gateway estiver ativo, o pedido fica
-    // "pendente" até o front chamar POST /api/pagamentos/processar com os
-    // dados do Brick. Se estiver em modo simulado, aprova na hora.
     if (!MP_ATIVO) {
       await connection.query('UPDATE pedidos SET status = ? WHERE id = ?', ['pago', pedidoId]);
     }
 
     await connection.commit();
 
-    // Dispara os e-mails DEPOIS de confirmar que o pedido foi salvo de
-    // verdade no banco (nunca antes do commit). Roda em segundo plano —
-    // não esperamos o e-mail terminar de enviar pra responder o cliente
-    // (isso deixaria o checkout mais lento à toa), e uma falha no envio
-    // não pode derrubar o pedido que o cliente já confirmou.
     const statusFinal = MP_ATIVO ? 'pendente' : 'pago';
     const pedidoParaEmail = {
       numero_pedido: numeroPedido,
@@ -421,12 +343,6 @@ async function createOrder(req, res, next) {
     };
     enviarEmailNovoPedidoEmpresa(pedidoParaEmail, itensProcessados).catch(() => {});
 
-    // O e-mail de confirmação pro CLIENTE só sai aqui se o pedido já
-    // nasceu pago (modo simulado, sem Mercado Pago configurado). Quando
-    // tem gateway de verdade, o pedido nasce "pendente" e esse e-mail só
-    // dispara mais tarde, quando o pagamento for realmente confirmado
-    // (em paymentController.js — tanto na aprovação na hora quanto na
-    // confirmação posterior via webhook, como costuma acontecer com Pix).
     if (statusFinal === 'pago') {
       enviarEmailConfirmacaoCliente(pedidoParaEmail, itensProcessados).catch(() => {});
     }
@@ -439,7 +355,7 @@ async function createOrder(req, res, next) {
       subtotal,
       frete,
       total,
-      requer_pagamento: MP_ATIVO, // se true, o front deve exibir o Payment Brick
+      requer_pagamento: MP_ATIVO,
     });
   } catch (err) {
     await connection.rollback();
@@ -449,7 +365,6 @@ async function createOrder(req, res, next) {
   }
 }
 
-// Consulta pública de um pedido pelo número (usado na página de confirmação)
 async function getOrderByNumber(req, res, next) {
   try {
     const { numero } = req.params;
@@ -469,11 +384,6 @@ async function getOrderByNumber(req, res, next) {
   }
 }
 
-// ---------- ADMIN ----------
-
-// Usado pelo sininho de notificação do admin: retorna pedidos criados
-// depois de um certo horário, pra saber se "chegou pedido novo" sem
-// precisar recarregar a página inteira.
 async function listNewOrders(req, res, next) {
   try {
     const { desde } = req.query;
@@ -497,16 +407,9 @@ async function listOrders(req, res, next) {
     const params = [];
 
     if (status) {
-      // Filtro explícito por um status específico (inclusive "enviado" ou
-      // "cancelado") — o admin ainda consegue ver esses pedidos quando
-      // escolhe isso de propósito no filtro, só não aparecem mais juntos
-      // com os pedidos ativos por padrão.
       sql += ' WHERE status = ?';
       params.push(status);
     } else {
-      // Lista principal (sem filtro escolhido): mostra só pedidos que
-      // ainda precisam de alguma ação — "enviado" e "cancelado" saem
-      // daqui, porque já não precisam de mais nada do admin.
       sql += " WHERE status NOT IN ('enviado', 'cancelado')";
     }
     sql += ' ORDER BY criado_em DESC';

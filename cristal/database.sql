@@ -1,16 +1,3 @@
--- =====================================================================
--- CRISTAL FLORICULTURA - Script de banco de dados (MySQL)
--- =====================================================================
--- Como usar:
---   mysql -u root -p < database.sql
--- Isso cria o banco "cristal_floricultura", todas as tabelas e dados de
--- exemplo (categorias, produtos, um admin, pedidos e lançamentos
--- financeiros em semanas/meses diferentes) para você testar o sistema
--- imediatamente.
--- =====================================================================
-
--- Garante que o cliente MySQL envie/receba os dados em UTF-8, independente
--- da configuração padrão do terminal (evita acentos corrompidos no import).
 SET NAMES utf8mb4;
 
 CREATE DATABASE IF NOT EXISTS cristal_floricultura
@@ -18,9 +5,6 @@ CREATE DATABASE IF NOT EXISTS cristal_floricultura
 
 USE cristal_floricultura;
 
--- ---------------------------------------------------------------------
--- Tabela: admins (usuários do painel administrativo)
--- ---------------------------------------------------------------------
 CREATE TABLE admins (
   id INT AUTO_INCREMENT PRIMARY KEY,
   nome VARCHAR(120) NOT NULL,
@@ -29,9 +13,6 @@ CREATE TABLE admins (
   criado_em DATETIME DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB;
 
--- ---------------------------------------------------------------------
--- Tabela: categorias
--- ---------------------------------------------------------------------
 CREATE TABLE categorias (
   id INT AUTO_INCREMENT PRIMARY KEY,
   nome VARCHAR(100) NOT NULL UNIQUE,
@@ -42,18 +23,11 @@ CREATE TABLE categorias (
   ordem_exibicao INT NOT NULL DEFAULT 0
 ) ENGINE=InnoDB;
 
--- Se o banco já existia antes desta versão (categorias sem imagem/status/
--- ordem), rode este bloco uma vez para adicionar as colunas novas sem
--- perder os dados existentes. Seguro rodar de novo — "IF NOT EXISTS" evita
--- erro caso as colunas já tenham sido criadas.
 ALTER TABLE categorias ADD COLUMN IF NOT EXISTS imagem_url VARCHAR(255) DEFAULT NULL;
 ALTER TABLE categorias ADD COLUMN IF NOT EXISTS icone VARCHAR(60) DEFAULT NULL;
 ALTER TABLE categorias ADD COLUMN IF NOT EXISTS ativo TINYINT(1) NOT NULL DEFAULT 1;
 ALTER TABLE categorias ADD COLUMN IF NOT EXISTS ordem_exibicao INT NOT NULL DEFAULT 0;
 
--- ---------------------------------------------------------------------
--- Tabela: produtos
--- ---------------------------------------------------------------------
 CREATE TABLE produtos (
   id INT AUTO_INCREMENT PRIMARY KEY,
   nome VARCHAR(150) NOT NULL,
@@ -66,28 +40,16 @@ CREATE TABLE produtos (
   quantidade_minima_atacado INT NOT NULL DEFAULT 50,
   estoque INT NOT NULL DEFAULT 0,
   imagem_url VARCHAR(255) DEFAULT NULL,
-  -- Peso e dimensões da embalagem, usados para calcular o frete real via
-  -- Melhor Envio quando o produto NÃO tem flores (ver possui_flores abaixo).
-  -- Valores padrão razoáveis para um arranjo/presente embalado.
   peso_kg DECIMAL(6,3) NOT NULL DEFAULT 0.3,
   altura_cm INT NOT NULL DEFAULT 15,
   largura_cm INT NOT NULL DEFAULT 20,
   comprimento_cm INT NOT NULL DEFAULT 20,
-  -- Controla, produto a produto, se ele contém flores de verdade (perecível).
-  -- É a ÚNICA fonte de verdade da regra de entrega: sempre marcado
-  -- manualmente pelo admin no cadastro/edição do produto — NUNCA inferido
-  -- do nome ou da categoria. Se pelo menos um item do carrinho tiver
-  -- possui_flores = 1, o pedido inteiro usa a entrega local por cidade em
-  -- vez do Melhor Envio (ver backend/services/entregaLocal.js).
   possui_flores TINYINT(1) NOT NULL DEFAULT 0,
   ativo TINYINT(1) NOT NULL DEFAULT 1,
   criado_em DATETIME DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (categoria_id) REFERENCES categorias(id)
 ) ENGINE=InnoDB;
 
--- ---------------------------------------------------------------------
--- Tabela: clientes (contas de clientes da loja, separado dos admins)
--- ---------------------------------------------------------------------
 CREATE TABLE clientes (
   id INT AUTO_INCREMENT PRIMARY KEY,
   nome VARCHAR(150) NOT NULL,
@@ -104,10 +66,6 @@ CREATE TABLE clientes (
   criado_em DATETIME DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB;
 
--- ---------------------------------------------------------------------
--- Tabela: codigos_verificacao (códigos de 6 dígitos para confirmar
--- cadastro por e-mail e para o login em duas etapas / 2FA)
--- ---------------------------------------------------------------------
 CREATE TABLE codigos_verificacao (
   id INT AUTO_INCREMENT PRIMARY KEY,
   cliente_id INT NOT NULL,
@@ -119,11 +77,6 @@ CREATE TABLE codigos_verificacao (
   FOREIGN KEY (cliente_id) REFERENCES clientes(id) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
--- ---------------------------------------------------------------------
--- Tabela: codigos_recuperacao_senha (recuperação de senha "esqueci minha
--- senha", compartilhada entre contas de admin e de cliente — o campo
--- "tipo" diz a qual das duas tabelas o usuario_id se refere)
--- ---------------------------------------------------------------------
 CREATE TABLE codigos_recuperacao_senha (
   id INT AUTO_INCREMENT PRIMARY KEY,
   tipo ENUM('admin', 'cliente') NOT NULL,
@@ -134,12 +87,6 @@ CREATE TABLE codigos_recuperacao_senha (
   criado_em DATETIME DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB;
 
--- ---------------------------------------------------------------------
--- Tabela: melhor_envio_conexao (guarda o token de acesso OAuth2 do
--- Melhor Envio depois que o admin autoriza a integração — só existe uma
--- linha, que vai sendo atualizada conforme o token é renovado). Usado só
--- para os pedidos SEM flores (ver produtos.possui_flores acima).
--- ---------------------------------------------------------------------
 CREATE TABLE melhor_envio_conexao (
   id INT AUTO_INCREMENT PRIMARY KEY,
   access_token TEXT NOT NULL,
@@ -149,34 +96,20 @@ CREATE TABLE melhor_envio_conexao (
   atualizado_em DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB;
 
--- ---------------------------------------------------------------------
--- Tabela: melhor_envio_oauth_states (proteção contra CSRF durante o
--- login/autorização do Melhor Envio — guardada no banco, não em memória,
--- pra sobreviver a reinícios do servidor entre o clique em "Conectar" e
--- a volta autorizada)
--- ---------------------------------------------------------------------
 CREATE TABLE melhor_envio_oauth_states (
   state VARCHAR(64) PRIMARY KEY,
   criado_em DATETIME DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB;
 
--- ---------------------------------------------------------------------
--- Tabela: produto_cores (variações de cor de um produto — ex: fitas ou
--- flores em tons diferentes de um mesmo arranjo)
--- ---------------------------------------------------------------------
 CREATE TABLE produto_cores (
   id INT AUTO_INCREMENT PRIMARY KEY,
   produto_id INT NOT NULL,
   nome VARCHAR(60) NOT NULL,
-  codigo_hex VARCHAR(7) DEFAULT NULL, -- ex: #1E3A2B, usado pra mostrar a bolinha de cor
+  codigo_hex VARCHAR(7) DEFAULT NULL,
   ordem INT NOT NULL DEFAULT 0,
   FOREIGN KEY (produto_id) REFERENCES produtos(id) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
--- ---------------------------------------------------------------------
--- Tabela: produto_tamanhos (tamanhos/portes disponíveis de um produto,
--- ex: Pequeno, Médio, Grande — para arranjos, cestas e buquês)
--- ---------------------------------------------------------------------
 CREATE TABLE produto_tamanhos (
   id INT AUTO_INCREMENT PRIMARY KEY,
   produto_id INT NOT NULL,
@@ -185,13 +118,6 @@ CREATE TABLE produto_tamanhos (
   FOREIGN KEY (produto_id) REFERENCES produtos(id) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
--- ---------------------------------------------------------------------
--- Tabela: produto_variacoes (estoque de cada combinação cor+tamanho de
--- um produto — ex: "Vermelho + Grande" tem 6 unidades, "Branco + Médio"
--- tem 4, etc). cor_id e/ou tamanho_id ficam NULL quando o produto não usa
--- aquela variação. Produtos que não usam variação nenhuma continuam com
--- o campo produtos.estoque de sempre.
--- ---------------------------------------------------------------------
 CREATE TABLE produto_variacoes (
   id INT AUTO_INCREMENT PRIMARY KEY,
   produto_id INT NOT NULL,
@@ -204,10 +130,6 @@ CREATE TABLE produto_variacoes (
   FOREIGN KEY (tamanho_id) REFERENCES produto_tamanhos(id) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
--- ---------------------------------------------------------------------
--- Tabela: produto_imagens (várias fotos por produto, além da capa —
--- cada foto pode opcionalmente estar vinculada a uma cor específica)
--- ---------------------------------------------------------------------
 CREATE TABLE produto_imagens (
   id INT AUTO_INCREMENT PRIMARY KEY,
   produto_id INT NOT NULL,
@@ -218,9 +140,6 @@ CREATE TABLE produto_imagens (
   FOREIGN KEY (cor_id) REFERENCES produto_cores(id) ON DELETE SET NULL
 ) ENGINE=InnoDB;
 
--- ---------------------------------------------------------------------
--- Tabela: pedidos
--- ---------------------------------------------------------------------
 CREATE TABLE pedidos (
   id INT AUTO_INCREMENT PRIMARY KEY,
   cliente_id INT DEFAULT NULL,
@@ -242,31 +161,15 @@ CREATE TABLE pedidos (
   forma_pagamento VARCHAR(50) DEFAULT 'simulado',
   mp_preference_id VARCHAR(120) DEFAULT NULL,
   mp_payment_id VARCHAR(120) DEFAULT NULL,
-  frete_descricao VARCHAR(150) DEFAULT NULL, -- ex: "Correios - PAC" ou "Entrega local de flores"
+  frete_descricao VARCHAR(150) DEFAULT NULL,
   frete_prazo_dias INT DEFAULT NULL,
-  -- Sistema de entrega usado por ESTE pedido, decidido pelo backend a
-  -- partir de produtos.possui_flores (nunca pelo que o front manda):
-  --   'entrega_local'    → pelo menos 1 item com flores, entrega por cidade
-  --                        fixa (ver backend/services/entregaLocal.js)
-  --   'melhor_envio'     → pedido de varejo sem flores, frete pelos Correios/
-  --                        transportadoras via Melhor Envio (fluxo original)
-  --   'combinado_atacado'→ pedido de atacado, frete combinado à parte (0)
   tipo_entrega ENUM('entrega_local','melhor_envio','combinado_atacado') NOT NULL DEFAULT 'melhor_envio',
-  -- Nome completo da cidade de entrega local escolhida (ex: "Recife - PE"),
-  -- exatamente como cadastrada em entregaLocal.js. NULL quando tipo_entrega
-  -- não é 'entrega_local'.
   cidade_entrega VARCHAR(80) DEFAULT NULL,
-  -- Ponto de referência da entrega. Obrigatório e digitado pelo cliente
-  -- somente quando cidade_entrega é Recife; nas demais cidades o próprio
-  -- sistema preenche com "Centro" (nunca vem de input do cliente).
   ponto_referencia VARCHAR(150) DEFAULT NULL,
   criado_em DATETIME DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (cliente_id) REFERENCES clientes(id) ON DELETE SET NULL
 ) ENGINE=InnoDB;
 
--- ---------------------------------------------------------------------
--- Tabela: pedido_itens
--- ---------------------------------------------------------------------
 CREATE TABLE pedido_itens (
   id INT AUTO_INCREMENT PRIMARY KEY,
   pedido_id INT NOT NULL,
@@ -283,9 +186,6 @@ CREATE TABLE pedido_itens (
   FOREIGN KEY (produto_id) REFERENCES produtos(id) ON DELETE SET NULL
 ) ENGINE=InnoDB;
 
--- ---------------------------------------------------------------------
--- Tabela: financeiro_lancamentos (receitas/despesas manuais)
--- ---------------------------------------------------------------------
 CREATE TABLE financeiro_lancamentos (
   id INT AUTO_INCREMENT PRIMARY KEY,
   tipo ENUM('receita','despesa') NOT NULL,
@@ -295,17 +195,6 @@ CREATE TABLE financeiro_lancamentos (
   criado_em DATETIME DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB;
 
--- ---------------------------------------------------------------------
--- Tabela: conteudo_imagens (imagens de conteúdo administráveis pelo
--- painel — banners e destaques da landing page da Cristal Floricultura e
--- da Pan Cristal). NÃO guarda fotos de produto nem de categoria, que já
--- têm seus próprios campos/tabelas; é só para imagens "soltas" de
--- composição visual que hoje estariam fixas no HTML/CSS.
--- "site" separa claramente as duas marcas — nunca compartilham linha.
--- "chave" identifica a finalidade da imagem dentro daquele site (ex:
--- "hero_principal", "destaque_flores"). A combinação (site, chave) é
--- única: cada imagem tem exatamente uma linha, que o admin atualiza.
--- ---------------------------------------------------------------------
 CREATE TABLE conteudo_imagens (
   id INT AUTO_INCREMENT PRIMARY KEY,
   site ENUM('cristal','pan_cristal') NOT NULL,
@@ -315,30 +204,9 @@ CREATE TABLE conteudo_imagens (
   UNIQUE KEY uq_conteudo_imagens_site_chave (site, chave)
 ) ENGINE=InnoDB;
 
--- Se o seu banco já existia antes desta versão (instalado antes da função
--- de "Imagens da Landing Page" no admin), rode só este bloco — ele é
--- seguro de repetir e não apaga nada, só cria a tabela se ainda não
--- existir:
---
--- CREATE TABLE IF NOT EXISTS conteudo_imagens (
---   id INT AUTO_INCREMENT PRIMARY KEY,
---   site ENUM('cristal','pan_cristal') NOT NULL,
---   chave VARCHAR(60) NOT NULL,
---   imagem_url VARCHAR(255) DEFAULT NULL,
---   atualizado_em DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
---   UNIQUE KEY uq_conteudo_imagens_site_chave (site, chave)
--- ) ENGINE=InnoDB;
-
--- =====================================================================
--- DADOS DE EXEMPLO
--- =====================================================================
-
--- Admin de teste
--- Login: admin@cristalfloricultura.com.br  |  Senha: cristal123
 INSERT INTO admins (nome, email, senha_hash) VALUES
 ('Administrador Cristal Floricultura', 'admin@cristalfloricultura.com.br', '$2b$10$8uDj9G7qBkNJV04KwE822uTU1S94ygFJaJbGTehm3E0ucilr/pQte');
 
--- Categorias
 INSERT INTO categorias (nome, slug) VALUES
 ('Buquês', 'buques'),
 ('Arranjos', 'arranjos'),
@@ -346,10 +214,6 @@ INSERT INTO categorias (nome, slug) VALUES
 ('Plantas e Vasos', 'plantas-e-vasos'),
 ('Coroas e Ocasiões Especiais', 'coroas-e-ocasioes-especiais');
 
--- Produtos (preço de custo, varejo e atacado/quantidade + regra de flores).
--- possui_flores = 1 marca os produtos que contêm flores de verdade e por
--- isso usam a entrega local por cidade; = 0 são presentes sem flores
--- perecíveis, que continuam pelo Melhor Envio normalmente.
 INSERT INTO produtos
   (nome, descricao, categoria_id, preco_custo, preco_varejo, preco_atacado, desconto_atacado_percentual, quantidade_minima_atacado, estoque, imagem_url, peso_kg, altura_cm, largura_cm, comprimento_cm, possui_flores, ativo)
 VALUES
@@ -393,11 +257,6 @@ VALUES
  'Ecobag de tecido personalizada com a marca Cristal Floricultura — item avulso sem flores.',
  3, 12.00, 39.90, 35.00, 12.28, 12, 90, NULL, 0.2, 5, 30, 35, 0, 1);
 
--- Pedidos de exemplo (com datas variadas nos últimos ~2 meses para
--- alimentar os relatórios semanais e mensais do painel financeiro).
--- Os pedidos com flores usam tipo_entrega = 'entrega_local' e trazem
--- cidade_entrega/ponto_referencia; os sem flores usam 'melhor_envio' com
--- endereço tradicional, exatamente como o sistema calcula em produção.
 INSERT INTO pedidos
   (numero_pedido, cliente_nome, cliente_telefone, cliente_email,
    endereco_rua, endereco_numero, endereco_bairro, endereco_cidade, endereco_estado, endereco_cep,
@@ -443,12 +302,9 @@ VALUES
  NULL, NULL, NULL, 'Bom Jardim', 'PE', NULL,
  189.80, 60.00, 249.80, 'varejo', 'cancelado', 'simulado', 'entrega_local', 'Bom Jardim - PE', 'Centro', NOW());
 
--- Cliente de teste (para login em cadastro.html / login.html na loja)
--- Login: cliente@teste.com | Senha: cliente123
 INSERT INTO clientes (nome, email, senha_hash, telefone, email_verificado, endereco_rua, endereco_numero, endereco_bairro, endereco_cidade, endereco_estado, endereco_cep) VALUES
 ('Cliente Teste', 'cliente@teste.com', '$2b$10$83N6iOXOjAGz9iWpkPWAheRho7iKpNecyV9TSuH6B71zW9Yex7orG', '(81) 98888-7777', 1, 'Rua Exemplo', '100', 'Centro', 'Surubim', 'PE', '55750-000');
 
--- Itens dos pedidos (referenciando os produtos inseridos acima)
 INSERT INTO pedido_itens (pedido_id, produto_id, nome_produto, quantidade, preco_unitario, preco_custo_unitario, subtotal, tipo_preco) VALUES
 (1, 1, 'Buquê de Rosas Vermelhas', 1, 129.90, 45.00, 129.90, 'varejo'),
 
@@ -472,8 +328,6 @@ INSERT INTO pedido_itens (pedido_id, produto_id, nome_produto, quantidade, preco
 (10, 2, 'Buquê Campestre Misto', 1, 109.90, 38.00, 109.90, 'varejo'),
 (10, 7, 'Vaso de Suculentas', 1, 79.90, 25.00, 79.90, 'varejo');
 
--- Lançamentos financeiros manuais (despesas fixas e receitas extras),
--- espalhados em semanas e meses diferentes para popular o painel financeiro
 INSERT INTO financeiro_lancamentos (tipo, descricao, valor, data) VALUES
 ('despesa', 'Aluguel da floricultura', 1500.00, DATE_SUB(CURDATE(), INTERVAL 55 DAY)),
 ('despesa', 'Anúncios Instagram/Facebook', 350.00, DATE_SUB(CURDATE(), INTERVAL 50 DAY)),
@@ -484,7 +338,3 @@ INSERT INTO financeiro_lancamentos (tipo, descricao, valor, data) VALUES
 ('despesa', 'Aluguel da floricultura', 1500.00, DATE_SUB(CURDATE(), INTERVAL 5 DAY)),
 ('receita', 'Venda direta na loja física (dinheiro)', 380.00, DATE_SUB(CURDATE(), INTERVAL 15 DAY)),
 ('receita', 'Comissão de indicação de fornecedor', 150.00, DATE_SUB(CURDATE(), INTERVAL 3 DAY));
-
--- =====================================================================
--- Fim do script
--- =====================================================================

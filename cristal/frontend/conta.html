@@ -135,8 +135,8 @@
       </div>
       <p class="texto-suave">Flores, buquês, cestas e presentes preparados com carinho para tornar cada momento inesquecível. Surubim — PE.</p>
       <div class="site-footer__social">
-        <a href="https://wa.me/5581999999999" target="_blank" rel="noopener" aria-label="WhatsApp">WhatsApp</a>
-        <a href="https://instagram.com" target="_blank" rel="noopener" aria-label="Instagram">Instagram</a>
+        <a href="https://wa.me/558185010010" target="_blank" rel="noopener" aria-label="WhatsApp">WhatsApp</a>
+        <a href="https://www.instagram.com/cristalfloricultura_/" target="_blank" rel="noopener" aria-label="Instagram">Instagram</a>
       </div>
     </div>
 
@@ -160,7 +160,7 @@
     <div class="site-footer__coluna">
       <h4>Fale com a gente</h4>
       <ul class="site-footer__contato">
-        <li><a href="https://wa.me/5581999999999" target="_blank" rel="noopener">WhatsApp: (81) 99999-9999</a></li>
+        <li><a href="https://wa.me/558185010010" target="_blank" rel="noopener">WhatsApp: (81) 8501-0010</a></li>
         <li><a href="mailto:contato@cristalfloricultura.com.br">E-mail: contato@cristalfloricultura.com.br</a></li>
         <li>Seg. a Sáb., 8h às 18h</li>
       </ul>
@@ -185,7 +185,6 @@ exigirLoginCliente();
 
 document.getElementById('btn-sair-cliente').addEventListener('click', logoutCliente);
 
-// Alternância simples entre as abas "Meus dados" e "Meus pedidos"
 document.querySelectorAll('.conta-menu a[data-aba]').forEach((link) => {
   link.addEventListener('click', (e) => {
     e.preventDefault();
@@ -233,7 +232,6 @@ document.getElementById('form-perfil').addEventListener('submit', async (e) => {
       }),
     });
     alertaEl.innerHTML = `<div class="alerta alerta-sucesso">Dados salvos com sucesso!</div>`;
-    // Atualiza o nome salvo localmente (usado no "Olá, Fulano" do cabeçalho)
     const clienteAtual = obterClienteLogado();
     salvarSessaoCliente(obterTokenCliente(), { ...clienteAtual, nome: document.getElementById('p_nome').value });
   } catch (err) {
@@ -247,17 +245,12 @@ function formatarData(dataStr) {
   return new Date(dataStr).toLocaleDateString('pt-BR');
 }
 
-// Guarda a lista completa (todos os status) já buscada do backend, pra não
-// precisar buscar de novo toda vez que a pessoa troca de sub-aba.
 let todosOsPedidosCache = null;
 let subAbaAtiva = 'ativos';
 
-// Cada pedido pertence a EXATAMENTE uma dessas 3 categorias, decidida pelo
-// status real vindo do banco — nunca por CSS ou por "esconder" elemento.
 function statusPertenceA(status, categoria) {
   if (categoria === 'entregue') return status === 'entregue';
   if (categoria === 'cancelado') return status === 'cancelado';
-  // "ativos" = tudo que não é nem entregue nem cancelado (pendente, pago, enviado)
   return status !== 'entregue' && status !== 'cancelado';
 }
 
@@ -297,9 +290,6 @@ function renderizarTabelaPedidos() {
 async function carregarMeusPedidos() {
   const tbody = document.getElementById('tabela-meus-pedidos');
   try {
-    // Sempre busca de novo do backend (não confia em cache velho) — assim,
-    // se o admin mudou o status de algum pedido, a próxima vez que a
-    // pessoa abrir "Meus pedidos" já reflete a mudança real.
     todosOsPedidosCache = await apiFetchCliente('/clientes/meus-pedidos');
     renderizarTabelaPedidos();
   } catch (err) {

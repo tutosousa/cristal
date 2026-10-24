@@ -1,17 +1,4 @@
-/* =========================================================================
-   CRISTAL FLORICULTURA — Surubim, PE
-   Identidade premium: verde #3B5943 + branco. Composição minimalista e
-   editorial — muito espaço em branco, tipografia refinada, fotografia
-   valorizada, bordas quase retas, sem sombras pesadas, sem gradientes,
-   sem excesso de elementos decorativos. Pensada para parecer uma marca
-   de flores e presentes sofisticada, não um template genérico.
-
-   A Panificadora Pan Cristal tem identidade e folha de estilos própria
-   (ver css/pan-cristal.css) — nada dela vive aqui.
-   ========================================================================= */
-
 :root {
-  /* Verde de marca — cor principal da Cristal Floricultura. */
   --verde-900: #223429;
   --verde-800: #3B5943;
   --verde-700: #4C6E55;
@@ -23,7 +10,7 @@
   --off-white: #FAFAF8;
 
   --texto: #1E211D;
-  --texto-suave: #71776D;
+  --texto-suave: #5C6258;
   --linha: #E7E5DE;
 
   --erro: #9A3324;
@@ -42,9 +29,6 @@
 
   --largura-maxima: 1280px;
 
-  /* Aliases de compatibilidade — algumas telas (principalmente o painel
-     administrativo) referenciam nomes antigos de variável em estilos
-     inline. Mantemos os aliases para não deixar nada quebrado visualmente. */
   --cor-fundo: var(--off-white);
   --cor-linha: var(--linha);
   --cor-texto-suave: var(--texto-suave);
@@ -120,7 +104,6 @@ select:focus-visible, textarea:focus-visible {
   display: inline-block;
 }
 
-/* ============================== CABEÇALHO ============================== */
 .site-header {
   background: var(--branco);
   border-bottom: 1px solid var(--linha);
@@ -258,7 +241,6 @@ select:focus-visible, textarea:focus-visible {
 }
 .menu-mobile-botao svg { width: 20px; height: 20px; }
 
-/* ================================ BOTÕES ================================ */
 .btn {
   display: inline-flex;
   align-items: center;
@@ -286,10 +268,6 @@ select:focus-visible, textarea:focus-visible {
 .btn:disabled { opacity: 0.5; cursor: not-allowed; }
 .btn-grande { padding: 17px 34px; font-size: 0.82rem; }
 
-/* ================================= HERO ================================= */
-/* Hero editorial: texto e imagem separados por uma linha fina, muito
-   espaço em branco, tipografia grande e discreta — sem efeitos, sem
-   fundo escuro, sem sobreposição de camadas. */
 .hero { padding: 84px 0 100px; background: var(--branco); }
 .hero__grade {
   display: grid;
@@ -307,7 +285,6 @@ select:focus-visible, textarea:focus-visible {
 .hero p { color: var(--texto-suave); font-size: 1.04rem; max-width: 420px; }
 .hero__acoes { display: flex; gap: 16px; flex-wrap: wrap; margin-top: 16px; }
 
-/* SUBSTITUIR: espaço reservado para foto real de flores/buquê da loja. */
 .hero__imagem {
   aspect-ratio: 4/4.6;
   background: var(--verde-050);
@@ -325,7 +302,6 @@ select:focus-visible, textarea:focus-visible {
   padding: 18px;
 }
 
-/* ============================ SEÇÃO GENÉRICA ============================= */
 .secao { padding: 88px 0; }
 .secao-cabecalho { max-width: 620px; margin: 0 0 48px; }
 .secao-cabecalho--centro { margin-left: auto; margin-right: auto; text-align: center; }
@@ -335,9 +311,6 @@ select:focus-visible, textarea:focus-visible {
 .secao--areia { background: var(--off-white); }
 .secao--verde { background: var(--verde-050); }
 
-/* ============================== CATEGORIAS =============================== */
-/* Tratamento editorial: a foto é o elemento principal, o nome vem depois
-   em versalete discreto — nada de caixas, bordas ou ícones genéricos. */
 .categorias-grade {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
@@ -370,7 +343,6 @@ select:focus-visible, textarea:focus-visible {
   text-align: center;
 }
 
-/* ============================ CARDS DE PRODUTO ============================ */
 .produtos-grade {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
@@ -420,7 +392,6 @@ select:focus-visible, textarea:focus-visible {
   text-decoration: none;
 }
 
-/* ============================ SEÇÕES INSTITUCIONAIS / PRESENTES / FLORES ============================ */
 .secao-destaque {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -430,7 +401,6 @@ select:focus-visible, textarea:focus-visible {
 @media (max-width: 820px) { .secao-destaque { grid-template-columns: 1fr; gap: 28px; } }
 .secao-destaque--inverso { direction: rtl; }
 .secao-destaque--inverso > * { direction: ltr; }
-/* SUBSTITUIR: espaço reservado para foto real. */
 .secao-destaque__imagem {
   aspect-ratio: 4/3.6;
   background: var(--verde-050);
@@ -451,10 +421,6 @@ select:focus-visible, textarea:focus-visible {
 .secao-ajuda .btn-primario { background: #fff; color: var(--verde-900); }
 .secao-ajuda .btn-primario:hover { background: var(--verde-050); }
 
-/* -------------------------- Acesso à Pan Cristal (header) -------------------------- */
-/* Não é mais uma seção/CTA na home — é um pequeno acesso isolado no cabeçalho,
-   ao lado do carrinho, com uma linha divisória fina para deixar claro que é
-   outra marca. Discreto: leve aumento de escala no hover, nada exagerado. */
 .site-header__divisor {
   width: 1px;
   height: 26px;
@@ -488,7 +454,6 @@ select:focus-visible, textarea:focus-visible {
   .site-header__divisor { height: 22px; }
 }
 
-/* ============================ PÁGINA DE PRODUTO ============================ */
 .produto-detalhe { display: grid; grid-template-columns: 1fr 1fr; gap: 64px; align-items: start; }
 @media (max-width: 800px) { .produto-detalhe { grid-template-columns: 1fr; gap: 28px; } }
 .produto-detalhe__imagem {
@@ -517,7 +482,6 @@ select:focus-visible, textarea:focus-visible {
 .seletor-tamanhos__pill:hover { border-color: var(--verde-800); }
 .seletor-tamanhos__pill.ativa { border-color: var(--verde-900); background: var(--verde-900); color: #fff; }
 
-/* ------------------------------- Opções de frete / entrega (checkout) ------------------------------- */
 .lista-opcoes-frete { display: flex; flex-direction: column; gap: 10px; margin-top: 6px; }
 .opcao-frete {
   display: flex; align-items: center; gap: 12px; padding: 14px 16px;
@@ -549,7 +513,6 @@ select:focus-visible, textarea:focus-visible {
   font-size: 0.95rem; font-family: inherit;
 }
 
-/* ================================ FORMULÁRIOS ================================ */
 .campo { margin-bottom: 18px; }
 .campo label { display: block; font-weight: 600; margin-bottom: 7px; font-size: 0.82rem; letter-spacing: 0.02em; }
 .campo input, .campo select, .campo textarea {
@@ -569,7 +532,6 @@ select:focus-visible, textarea:focus-visible {
 .bloco-formulario > h3:first-child { margin-top: 0; }
 .bloco-formulario__subtitulo { color: var(--texto-suave); font-size: 0.84rem; margin-top: -8px; }
 
-/* ================================= CARRINHO ================================= */
 .carrinho-layout { display: grid; grid-template-columns: 2fr 1fr; gap: 48px; align-items: start; }
 @media (max-width: 800px) { .carrinho-layout { grid-template-columns: 1fr; } }
 
@@ -591,20 +553,17 @@ select:focus-visible, textarea:focus-visible {
   font-weight: 600; font-size: 1.15rem; color: var(--verde-900); font-family: var(--fonte-titulo);
 }
 
-/* ================================= MENSAGENS ================================= */
 .alerta { padding: 13px 16px; font-size: 0.9rem; margin-bottom: 18px; border: 1px solid transparent; }
 .alerta-erro { background: var(--erro-fundo); color: var(--erro); border-color: #e5c1b8; }
 .alerta-sucesso { background: var(--sucesso-fundo); color: var(--sucesso); border-color: #bdd9c8; }
 
 .estado-vazio { text-align: center; padding: 72px 24px; color: var(--texto-suave); }
 
-/* ================================= UTILIDADES ================================= */
 .texto-suave { color: var(--texto-suave); }
 .mt-0 { margin-top: 0; }
 .text-center { text-align: center; }
 .carregando { text-align: center; padding: 60px 0; color: var(--texto-suave); }
 
-/* ============================ GALERIA DE FOTOS (produto) ============================ */
 .produto-detalhe__galeria { display: flex; flex-direction: column; gap: 10px; }
 .produto-detalhe__miniaturas { display: flex; gap: 8px; overflow-x: auto; }
 .produto-detalhe__miniaturas button {
@@ -614,10 +573,10 @@ select:focus-visible, textarea:focus-visible {
 .produto-detalhe__miniaturas button.ativa { border-color: var(--verde-800); }
 .produto-detalhe__miniaturas img { width: 100%; height: 100%; object-fit: cover; }
 
-/* ================================ RODAPÉ ================================ */
 .site-footer { background: var(--verde-900); color: rgba(255,255,255,0.7); margin-top: 0; font-size: 0.88rem; }
 .site-footer a { color: rgba(255,255,255,0.7); }
 .site-footer a:hover { color: #fff; }
+.site-footer .texto-suave { color: rgba(255,255,255,0.78); }
 .site-footer__grade { display: grid; grid-template-columns: 1.4fr 1fr 1fr 1fr; gap: 32px; padding: 72px 32px 48px; }
 .site-footer__coluna h4 { color: #fff; font-family: var(--fonte-base); font-weight: 600; font-size: 0.78rem; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 18px; }
 .site-footer__coluna ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 11px; }
@@ -640,7 +599,6 @@ select:focus-visible, textarea:focus-visible {
   .site-footer__barra-conteudo { flex-direction: column; align-items: flex-start; }
 }
 
-/* ============================== PÁGINAS DE CONTA/LOGIN ============================== */
 .pagina-auth { max-width: 420px; margin: 64px auto; padding: 0 24px; }
 .pagina-auth .resumo-pedido { padding: 36px; }
 .pagina-auth h1 { font-size: 1.6rem; text-align: center; }
@@ -670,7 +628,6 @@ select:focus-visible, textarea:focus-visible {
   color: var(--erro); font-weight: 600; cursor: pointer; font-family: inherit; font-size: 0.86rem;
 }
 
-/* ============================ PÁGINA 404 ============================ */
 .pagina-404 { min-height: 60vh; display: flex; align-items: center; justify-content: center; }
 .pagina-404__conteudo { text-align: center; max-width: 460px; }
 .pagina-404__numero { display: block; font-family: var(--fonte-titulo); font-size: 5rem; font-weight: 500; color: var(--verde-700); line-height: 1; margin-bottom: 10px; }
@@ -678,7 +635,6 @@ select:focus-visible, textarea:focus-visible {
 .pagina-404__acoes { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-top: 28px; }
 @media (max-width: 480px) { .pagina-404__numero { font-size: 3.6rem; } .pagina-404__acoes { flex-direction: column; } }
 
-/* =========================== RESPONSIVIDADE GERAL (mobile-first) =========================== */
 @media (max-width: 900px) {
   .conta-layout { grid-template-columns: 1fr; }
 }

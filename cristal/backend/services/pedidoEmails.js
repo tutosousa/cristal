@@ -1,10 +1,3 @@
-// Monta e envia os dois e-mails automáticos relacionados a um pedido:
-//   1. Aviso de "novo pedido" pra empresa (pro dono, mesmo sem o painel aberto)
-//   2. Confirmação/resumo do pedido pra cliente (sem PIX — só resumo)
-//
-// Os dois reaproveitam o mesmo sistema de envio já usado pelos códigos de
-// verificação (config/email.js) — não precisa de nenhuma credencial nova.
-
 const { enviarEmailGenerico } = require('../config/email');
 
 function formatarPreco(valor) {
@@ -27,9 +20,6 @@ function montarListaProdutos(itens) {
 }
 
 function montarEnderecoTexto(pedido) {
-  // Entrega local de flores (ver services/entregaLocal.js): não tem rua/CEP,
-  // só cidade + ponto de referência, decidido pelo backend a partir do
-  // conteúdo do carrinho — nunca inferido aqui.
   if (pedido.tipo_entrega === 'entrega_local') {
     return (
       `Entrega local de flores — Cristal Floricultura\n` +
@@ -51,8 +41,6 @@ function montarEnderecoTexto(pedido) {
   );
 }
 
-// E-mail 1: avisa a EMPRESA que chegou um pedido novo — pro dono saber
-// mesmo sem estar com o painel administrativo aberto no momento.
 async function enviarEmailNovoPedidoEmpresa(pedido, itens) {
   const emailEmpresa = (process.env.EMAIL_ADMIN || '').trim();
   if (!emailEmpresa) {
@@ -86,17 +74,12 @@ ${montarEnderecoTexto(pedido)}
   try {
     await enviarEmailGenerico(emailEmpresa, assunto, corpo);
   } catch (err) {
-    // Uma falha aqui não pode derrubar a criação do pedido — o cliente já
-    // pagou/confirmou, o pedido tem que existir de qualquer forma. Só
-    // registra no log pra investigar depois.
     console.error('Falha ao enviar aviso de novo pedido pra empresa:', err.message);
   }
 }
 
-// E-mail 2: confirma o pedido pra CLIENTE, com o resumo completo — mas
-// SEM QR code / código Pix (o pagamento acontece só na tela do checkout).
 async function enviarEmailConfirmacaoCliente(pedido, itens) {
-  if (!pedido.cliente_email) return; // pedido sem e-mail informado (raro, mas possível)
+  if (!pedido.cliente_email) return;
 
   const assunto = `Pedido recebido — ${pedido.numero_pedido}`;
   const statusTexto = pedido.status === 'pago'

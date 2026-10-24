@@ -1,16 +1,9 @@
-// Serviço de cálculo de frete.
-//
-// Se o Melhor Envio estiver conectado (ver config/melhorEnvio.js e
-// services/melhorEnvioAuth.js), consulta o preço e prazo reais de várias
-// transportadoras. Caso contrário, cai no modo reserva: frete grátis (o
-// mesmo comportamento que a loja já usava antes desta integração).
-
 const { MELHOR_ENVIO_CONFIGURADO, CEP_ORIGEM, API_BASE_URL } = require('../config/melhorEnvio');
 const { obterTokenValido } = require('./melhorEnvioAuth');
 
 async function cotarFreteReal(cepDestino, itens) {
   const token = await obterTokenValido();
-  if (!token) return null; // ainda não autorizado pelo admin
+  if (!token) return null;
 
   const produtosParaCotacao = (itens && itens.length > 0)
     ? itens.map((item) => ({
@@ -46,9 +39,6 @@ async function cotarFreteReal(cepDestino, itens) {
 
   const dados = await resposta.json();
 
-  // A API retorna uma opção por transportadora — descartamos as que vieram
-  // com erro (ex: fora da área de cobertura daquela transportadora
-  // específica) e ordenamos as válidas da mais barata pra mais cara.
   return dados
     .filter((op) => !op.error && op.price)
     .sort((a, b) => Number(a.price) - Number(b.price))
@@ -68,10 +58,6 @@ function freteGratis() {
   };
 }
 
-// Função principal usada pelo resto do sistema: tenta o Melhor Envio real
-// se estiver conectado, e cai pro frete grátis em qualquer outro caso
-// (não conectado, CEP inválido, erro de rede, etc) — assim o checkout
-// nunca trava por causa do frete.
 async function obterOpcoesFrete(cepDestino, itens) {
   if (!MELHOR_ENVIO_CONFIGURADO || !cepDestino) {
     return freteGratis();

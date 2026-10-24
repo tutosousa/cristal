@@ -53,8 +53,8 @@
       </div>
       <p class="texto-suave">Flores, buquês, cestas e presentes preparados com carinho para tornar cada momento especial. Surubim — PE.</p>
       <div class="site-footer__social">
-        <a href="https://wa.me/5581999999999" target="_blank" rel="noopener" aria-label="WhatsApp">WhatsApp</a>
-        <a href="https://instagram.com" target="_blank" rel="noopener" aria-label="Instagram">Instagram</a>
+        <a href="https://wa.me/558185010010" target="_blank" rel="noopener" aria-label="WhatsApp">WhatsApp</a>
+        <a href="https://www.instagram.com/cristalfloricultura_/" target="_blank" rel="noopener" aria-label="Instagram">Instagram</a>
       </div>
     </div>
 
@@ -78,7 +78,7 @@
     <div class="site-footer__coluna">
       <h4>Fale com a gente</h4>
       <ul class="site-footer__contato">
-        <li><a href="https://wa.me/5581999999999" target="_blank" rel="noopener">WhatsApp: (81) 99999-9999</a></li>
+        <li><a href="https://wa.me/558185010010" target="_blank" rel="noopener">WhatsApp: (81) 8501-0010</a></li>
         <li><a href="mailto:contato@cristalfloricultura.com.br">E-mail: contato@cristalfloricultura.com.br</a></li>
         <li>Seg. a Sáb., 8h às 18h</li>
       </ul>
@@ -109,9 +109,6 @@ let indiceFotoAtual = 0;
 let corSelecionada = null;
 let tamanhoSelecionado = null;
 
-// Desconto por quantidade: quando configurado no produto pelo admin, o
-// preço unitário cai automaticamente ao atingir a quantidade mínima —
-// sem nenhuma seção ou aba separada, é só um preço menor no mesmo cartão.
 function montarAvisoDesconto(produto) {
   if (!produto.preco_atacado) return '';
   return `
@@ -130,8 +127,6 @@ function trocarFotoPrincipal(indice) {
   });
 }
 
-// Troca a galeria exibida para as fotos da cor escolhida. Se aquela cor
-// não tiver fotos próprias cadastradas, cai de volta pras fotos gerais.
 function renderizarGaleriaComCor(produto, corId) {
   const cor = (produto.cores || []).find((c) => c.id === corId);
   const galeriaCor = cor && cor.galeria.length > 0 ? cor.galeria : produto.galeria;
@@ -293,9 +288,6 @@ function renderizarProduto(produto) {
   });
 }
 
-// Descobre o estoque disponível pra combinação de cor/tamanho escolhida
-// agora — se o produto não tiver variações configuradas (nenhuma linha em
-// produto.variacoes), cai no estoque geral do produto, como sempre foi.
 function obterEstoqueAtual(produto) {
   if (!produto.variacoes || produto.variacoes.length === 0) {
     return produto.estoque;
@@ -333,8 +325,6 @@ function atualizarEstoqueExibido(produto) {
   }
 }
 
-// Reamarra os cliques dos seletores depois de re-renderizar (evita perder
-// os listeners quando o HTML de cores/tamanhos é atualizado)
 function ligarEventosVariacoes(produto) {
   document.querySelectorAll('.seletor-cores__bolinha').forEach((btn) => {
     btn.onclick = () => {

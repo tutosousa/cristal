@@ -1,31 +1,8 @@
-// Integração de pagamento com o Mercado Pago — CHECKOUT INVISÍVEL.
-//
-// O cliente nunca sai do site da Cristal Floricultura: o formulário de pagamento (cartão,
-// Pix ou boleto) é o próprio "Payment Brick" do Mercado Pago, embutido na
-// página de checkout. O fluxo é:
-//   1. O front pede a Public Key em GET /api/pagamentos/config.
-//   2. O Brick é renderizado dentro do checkout.html com essa chave.
-//   3. Quando o cliente confirma o pagamento, o Brick nos entrega um
-//      "formData" (dados tokenizados, sem o número do cartão em texto puro).
-//   4. Nosso backend recebe esse formData em POST /api/pagamentos/processar,
-//      RECALCULA o valor a partir do pedido salvo no banco (nunca confia no
-//      valor vindo do navegador) e chama a API de Pagamentos do Mercado Pago.
-//   5. Respondemos na hora se foi aprovado, recusado ou está em análise —
-//      tudo sem sair da página.
-//
-// Modo simulado (sem MP_ACCESS_TOKEN configurado): o pedido já é aprovado
-// automaticamente no momento da criação (ver orderController.js), então o
-// checkout nem chega a mostrar o formulário de pagamento — ótimo pra testar
-// e demonstrar o site antes de o dono da loja ativar a conta do Mercado Pago.
-
 const { Preference, Payment } = require('mercadopago');
 const { mpClient, MP_ATIVO, MP_PUBLIC_KEY } = require('../config/mercadopago');
 const { pool } = require('../config/db');
 const { enviarEmailConfirmacaoCliente } = require('../services/pedidoEmails');
 
-// Manda o e-mail de confirmação pro cliente quando o pagamento é
-// confirmado de verdade — busca o pedido completo (com itens) pra montar
-// o e-mail, e nunca derruba o fluxo principal se o envio falhar.
 async function enviarEmailConfirmacaoSeAplicavel(numeroPedido) {
   try {
     const [pedidos] = await pool.query('SELECT * FROM pedidos WHERE numero_pedido = ?', [numeroPedido]);
@@ -37,13 +14,10 @@ async function enviarEmailConfirmacaoSeAplicavel(numeroPedido) {
   }
 }
 
-// Devolve pro frontend a chave pública e se o gateway está ativo — isso
-// não é segredo, a Public Key é feita pra ser usada no navegador.
 async function getConfig(req, res) {
   res.json({ ativo: MP_ATIVO, publicKey: MP_PUBLIC_KEY });
 }
 
-// Processa o pagamento vindo do Payment Brick (checkout invisível).
 async function processarPagamento(req, res, next) {
   try {
     if (!MP_ATIVO) {
@@ -69,8 +43,6 @@ async function processarPagamento(req, res, next) {
 
     const payment = new Payment(mpClient);
 
-    // O valor SEMPRE vem do banco (pedido salvo no passo anterior), nunca
-    // do formData do navegador — evita que alguém manipule o preço no front.
     const corpoPagamento = {
       transaction_amount: Number(pedido.total),
       description: `Pedido Cristal Floricultura ${pedido.numero_pedido}`,
@@ -82,7 +54,6 @@ async function processarPagamento(req, res, next) {
         : undefined,
     };
 
-    // Campos específicos de cartão (só existem quando o meio de pagamento é cartão)
     if (formData.token) corpoPagamento.token = formData.token;
     if (formData.installments) corpoPagamento.installments = formData.installments;
     if (formData.issuer_id) corpoPagamento.issuer_id = formData.issuer_id;
@@ -102,21 +73,16 @@ async function processarPagamento(req, res, next) {
       pedido.id,
     ]);
 
-    // Chegou até aqui sabendo que o pedido estava "pendente" (checamos lá
-    // em cima) — se agora virou "pago", é uma confirmação de verdade,
-    // então dispara o e-mail pro cliente (sem esperar terminar de enviar).
     if (novoStatus === 'pago') {
       enviarEmailConfirmacaoSeAplicavel(pedido.numero_pedido).catch(() => {});
     }
 
     res.json({
-      status: resultado.status, // approved | in_process | pending | rejected
+      status: resultado.status,
       status_detail: resultado.status_detail,
       payment_id: resultado.id,
-      // Para Pix: o QR code vem aqui, pro front exibir sem sair da página
       qr_code: resultado.point_of_interaction?.transaction_data?.qr_code || null,
       qr_code_base64: resultado.point_of_interaction?.transaction_data?.qr_code_base64 || null,
-      // Para boleto: o link do PDF do boleto
       ticket_url: resultado.transaction_details?.external_resource_url || null,
     });
   } catch (err) {
@@ -130,10 +96,6 @@ async function processarPagamento(req, res, next) {
   }
 }
 
-// ---------- Mantido como alternativa: Checkout Pro (redireciona pro MP) ----------
-// Não é mais usado no fluxo padrão (que agora é o checkout invisível acima),
-// mas fica disponível caso um dia vocês queiram voltar a usar o checkout
-// hospedado pelo próprio Mercado Pago.
 async function criarPreferenciaPagamento(pedido, itens) {
   const preference = new Preference(mpClient);
 
@@ -173,9 +135,6 @@ async function criarPreferenciaPagamento(pedido, itens) {
   return { init_point: resultado.init_point, preference_id: resultado.id };
 }
 
-// Webhook chamado pelo Mercado Pago quando o status de um pagamento muda
-// (confirmação assíncrona, importante sobretudo para Pix e boleto, que
-// demoram para compensar).
 async function receberWebhook(req, res) {
   try {
     const paymentId = req.query['data.id'] || req.body?.data?.id;
@@ -191,10 +150,6 @@ async function receberWebhook(req, res) {
     const numeroPedido = pagamento.external_reference;
     if (!numeroPedido) return res.sendStatus(200);
 
-    // Busca o status ATUAL antes de atualizar — importante pra não
-    // disparar o e-mail de confirmação de novo se esse pedido já tinha
-    // sido marcado como pago antes (o Mercado Pago pode chamar esse
-    // webhook mais de uma vez pro mesmo pagamento).
     const [pedidoAtual] = await pool.query('SELECT status FROM pedidos WHERE numero_pedido = ?', [
       numeroPedido,
     ]);
@@ -210,9 +165,6 @@ async function receberWebhook(req, res) {
         [novoStatus, String(paymentId), numeroPedido]
       );
 
-      // Só é uma confirmação DE VERDADE se o status mudou agora — se já
-      // estava "pago" antes (processarPagamento já tinha confirmado na
-      // hora, por exemplo), não manda o e-mail de novo.
       if (novoStatus === 'pago' && statusAnterior !== 'pago') {
         enviarEmailConfirmacaoSeAplicavel(numeroPedido).catch(() => {});
       }

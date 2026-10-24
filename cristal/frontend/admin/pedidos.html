@@ -77,9 +77,6 @@ function formatarData(dataStr) {
   return new Date(dataStr).toLocaleString('pt-BR');
 }
 
-// Mostra qual sistema de entrega foi usado no pedido — a mesma decisão que
-// o backend tomou de verdade ao criar o pedido (ver orderController.js),
-// nunca um valor recalculado aqui na tela.
 function formatarEntrega(p) {
   if (p.tipo_entrega === 'entrega_local') {
     const referencia = p.ponto_referencia ? ` <br><span class="texto-suave" style="font-size:0.78rem;">Ref.: ${escapeHtml(p.ponto_referencia)}</span>` : '';

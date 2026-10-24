@@ -11,8 +11,6 @@ function gerarSlug(nome) {
     .replace(/(^-|-$)/g, '');
 }
 
-// Lista as categorias ativas (público - usado no menu e na home da loja),
-// na ordem definida pela administradora (ordem_exibicao) e depois por nome.
 async function listCategories(req, res, next) {
   try {
     const [rows] = await pool.query(
@@ -27,8 +25,6 @@ async function listCategories(req, res, next) {
   }
 }
 
-// Lista categorias para o admin (inclusive inativas), já com a contagem de
-// produtos de cada uma (útil pra saber se dá pra excluir sem quebrar nada)
 async function listCategoriesAdmin(req, res, next) {
   try {
     const [rows] = await pool.query(`
@@ -45,8 +41,6 @@ async function listCategoriesAdmin(req, res, next) {
   }
 }
 
-// Cria uma nova categoria (admin) — nome é obrigatório; imagem, ícone,
-// status e ordem de exibição são opcionais.
 async function createCategory(req, res, next) {
   try {
     const { nome, icone, ativo, ordem_exibicao } = req.body;
@@ -73,8 +67,6 @@ async function createCategory(req, res, next) {
   }
 }
 
-// Edita uma categoria existente (admin). Só troca a imagem se uma nova
-// foto for enviada — sem isso, mantém a imagem que já estava salva.
 async function updateCategory(req, res, next) {
   try {
     const { id } = req.params;
@@ -112,15 +104,12 @@ async function updateCategory(req, res, next) {
   }
 }
 
-// Exclui uma categoria (admin)
 async function deleteCategory(req, res, next) {
   try {
     const { id } = req.params;
     await pool.query('DELETE FROM categorias WHERE id = ?', [id]);
     res.json({ message: 'Categoria removida com sucesso.' });
   } catch (err) {
-    // A categoria tem produtos vinculados (o banco impede a exclusão pra
-    // não deixar produtos "órfãos", sem categoria nenhuma).
     if (err.code === 'ER_ROW_IS_REFERENCED_2' || err.code === 'ER_ROW_IS_REFERENCED') {
       return res.status(409).json({
         error: 'Não é possível excluir esta categoria porque ainda existem produtos nela. Mova ou exclua os produtos primeiro.',
@@ -130,10 +119,6 @@ async function deleteCategory(req, res, next) {
   }
 }
 
-// Remove só a imagem de uma categoria (admin), mantendo nome, slug,
-// status, ordem e produtos vinculados intactos — a categoria continua
-// existindo normalmente, só fica sem foto (o site público cai no visual
-// padrão já existente para categoria sem imagem).
 async function removeCategoryImage(req, res, next) {
   try {
     const { id } = req.params;

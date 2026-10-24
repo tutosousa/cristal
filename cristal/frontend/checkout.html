@@ -59,12 +59,6 @@
         </p>
       </div>
 
-      <!-- ================================================================
-           ENTREGA DE FLORES — mostrada só quando o carrinho tem pelo menos
-           um produto com possui_flores = 1. Sem CEP, sem transportadora:
-           a entrega é local, por cidade, com valor fixo (o backend nunca
-           aceita o valor mostrado aqui, ele recalcula tudo de novo).
-           ================================================================ -->
       <div class="bloco-formulario" id="bloco-entrega-flores" style="display:none;">
         <h3>Entrega</h3>
         <p class="bloco-formulario__subtitulo">
@@ -76,16 +70,12 @@
             <option value="">Selecione a cidade</option>
           </select>
         </div>
-        <div class="campo" id="campo-ponto-referencia" style="display:none;">
-          <label for="ponto_referencia">Ponto de referência (obrigatório para Recife)</label>
-          <input type="text" id="ponto_referencia" name="ponto_referencia" placeholder="Ex: próximo ao Shopping Recife, portaria 2">
+        <div class="campo" id="campo-ponto-referencia">
+          <label for="ponto_referencia" id="label-ponto-referencia">Ponto de referência</label>
+          <input type="text" id="ponto_referencia" name="ponto_referencia" value="Centro" maxlength="150" placeholder="Ex: próximo a uma escola, em frente a uma farmácia">
         </div>
       </div>
 
-      <!-- ================================================================
-           ENDEREÇO TRADICIONAL + MELHOR ENVIO — mostrado quando o carrinho
-           NÃO tem flores. Fluxo original, inalterado.
-           ================================================================ -->
       <div class="bloco-formulario" id="bloco-endereco-tradicional">
         <h3>Entrega</h3>
         <div class="campo">
@@ -172,7 +162,6 @@
     </div>
   </div>
 
-  <!-- Etapa de pagamento invisível (Payment Brick) -->
   <div id="etapa-pagamento" style="display:none; max-width:560px; margin:0 auto;">
     <button type="button" id="btn-voltar-dados" class="btn btn-secundario" style="margin-bottom:16px;">← Voltar e revisar dados</button>
     <div class="resumo-pedido" style="margin-bottom:20px;">
@@ -196,8 +185,6 @@
 <script>
 document.getElementById('ano').textContent = new Date().getFullYear();
 
-// Checkout exige login — sem conta, redireciona pro login e volta pra cá
-// depois de entrar.
 exigirLoginCliente();
 
 const carrinho = obterCarrinho();
@@ -210,9 +197,6 @@ if (carrinho.length === 0) {
   window.location.href = 'index.html';
 }
 
-// Regra de negócio: se PELO MENOS UM produto do carrinho tem flores, o
-// pedido inteiro usa a entrega local por cidade em vez do Melhor Envio —
-// mesmo que o carrinho também tenha itens sem flores.
 const temFlores = carrinhoPossuiFlores();
 let cidadesEntregaCarregadas = [];
 let cidadeEntregaSelecionada = null;
@@ -227,9 +211,6 @@ if (temFlores) {
   document.getElementById('mensagem-preencha-cep').style.display = 'block';
 }
 
-// Busca a lista de cidades de entrega local (nome + valor) na mesma fonte
-// de verdade que o backend usa pra validar e recalcular o frete — os dois
-// lados nunca ficam dessincronizados.
 async function carregarCidadesEntrega() {
   const selectEl = document.getElementById('cidade_entrega');
   try {
@@ -248,11 +229,10 @@ document.getElementById('cidade_entrega').addEventListener('change', (e) => {
   document.getElementById('resumo-frete').textContent = freteAtual > 0 ? formatarPreco(freteAtual) : 'Selecione a cidade';
   document.getElementById('resumo-total').textContent = formatarPreco(subtotalAtual + freteAtual);
 
-  // O ponto de referência só é pedido pro cliente em Recife — nas demais
-  // cidades o próprio sistema salva "Centro" (sem campo, sem input).
-  const exigeReferencia = e.target.value === 'Recife - PE';
-  document.getElementById('campo-ponto-referencia').style.display = exigeReferencia ? 'block' : 'none';
-  document.getElementById('ponto_referencia').required = exigeReferencia;
+  const emRecife = e.target.value === 'Recife - PE';
+  document.getElementById('label-ponto-referencia').textContent = emRecife
+    ? 'Ponto de referência para entrega do buquê em Recife'
+    : 'Ponto de referência';
 });
 
 async function preencherComPerfilLogado() {
@@ -270,7 +250,6 @@ async function preencherComPerfilLogado() {
     document.getElementById('endereco_estado').value = perfil.endereco_estado || '';
     if (perfil.endereco_cep) buscarOpcoesFrete();
   } catch (err) {
-    // segue com o formulário em branco se não conseguir carregar
   }
 }
 
@@ -363,7 +342,6 @@ function atualizarTotalComFrete() {
 
 document.getElementById('endereco_cep').addEventListener('blur', buscarOpcoesFrete);
 
-// ---------- Etapa 1: cria o pedido, depois decide se mostra o Brick ----------
 document.getElementById('form-checkout').addEventListener('submit', async (e) => {
   e.preventDefault();
   const btn = document.getElementById('btn-continuar');
@@ -382,10 +360,9 @@ document.getElementById('form-checkout').addEventListener('submit', async (e) =>
     return;
   }
 
-  if (temFlores && cidadeEntregaSelecionada.cidade === 'Recife - PE' && !document.getElementById('ponto_referencia').value.trim()) {
-    alertaEl.innerHTML = `<div class="alerta alerta-erro">Informe um ponto de referência para a entrega em Recife.</div>`;
-    document.getElementById('campo-ponto-referencia').scrollIntoView({ behavior: 'smooth', block: 'center' });
-    return;
+  if (temFlores) {
+    const campoReferencia = document.getElementById('ponto_referencia');
+    if (!campoReferencia.value.trim()) campoReferencia.value = 'Centro';
   }
 
   const formData = new FormData(e.target);
@@ -398,11 +375,6 @@ document.getElementById('form-checkout').addEventListener('submit', async (e) =>
     cor: item.cor || undefined,
   }));
 
-  // No fluxo de entrega local de flores não há campos de endereço
-  // tradicionais no formulário (o bloco fica oculto) — não faz sentido
-  // mandar valores vazios deles, e cidade_entrega/ponto_referencia é quem
-  // realmente importa aqui (o backend recalcula o frete a partir da cidade,
-  // nunca confia em nenhum valor vindo do navegador).
   if (temFlores) {
     delete dados.endereco_cep;
     delete dados.endereco_rua;
@@ -410,6 +382,9 @@ document.getElementById('form-checkout').addEventListener('submit', async (e) =>
     delete dados.endereco_bairro;
     delete dados.endereco_cidade;
     delete dados.endereco_estado;
+  } else {
+    delete dados.ponto_referencia;
+    delete dados.cidade_entrega;
   }
 
   btn.disabled = true;
@@ -424,12 +399,10 @@ document.getElementById('form-checkout').addEventListener('submit', async (e) =>
     limparCarrinho();
 
     if (!resultado.requer_pagamento) {
-      // Modo simulado (sem gateway configurado): já foi aprovado direto
       window.location.href = `pedido-sucesso.html?numero=${encodeURIComponent(resultado.numero_pedido)}`;
       return;
     }
 
-    // Gateway ativo: mostra o checkout invisível (Payment Brick)
     document.getElementById('pagamento-total').textContent = formatarPreco(resultado.total);
     document.getElementById('etapa-dados').style.display = 'none';
     document.getElementById('etapa-pagamento').style.display = 'block';
@@ -449,7 +422,6 @@ document.getElementById('btn-voltar-dados').addEventListener('click', () => {
   document.getElementById('btn-continuar').textContent = 'Continuar para o pagamento';
 });
 
-// ---------- Etapa 2: Payment Brick (cartão + Pix + boleto, tudo no site) ----------
 async function iniciarPaymentBrick(total, emailPagador) {
   const resultadoEl = document.getElementById('resultado-pagamento');
   resultadoEl.innerHTML = '';
@@ -457,7 +429,7 @@ async function iniciarPaymentBrick(total, emailPagador) {
   try {
     const config = await apiFetch('/pagamentos/config');
     if (!config.ativo || !config.publicKey) {
-      resultadoEl.innerHTML = `<div class="alerta alerta-erro">O pagamento online ainda não foi configurado pela loja. <a href="https://wa.me/5581999999999" target="_blank" rel="noopener">Entre em contato pelo WhatsApp</a> para finalizar seu pedido ${escapeHtml(numeroPedidoAtual)}.</div>`;
+      resultadoEl.innerHTML = `<div class="alerta alerta-erro">O pagamento online ainda não foi configurado pela loja. <a href="https://wa.me/558185010010" target="_blank" rel="noopener">Entre em contato pelo WhatsApp</a> para finalizar seu pedido ${escapeHtml(numeroPedidoAtual)}.</div>`;
       return;
     }
 
@@ -477,15 +449,12 @@ async function iniciarPaymentBrick(total, emailPagador) {
         paymentMethods: {
           creditCard: 'all',
           debitCard: 'all',
-          ticket: 'all',    // boleto
-          bankTransfer: 'all', // Pix
+          ticket: 'all',
+          bankTransfer: 'all',
         },
       },
       callbacks: {
         onReady: () => {
-          // Chamado quando o formulário de pagamento termina de carregar.
-          // Não precisamos fazer nada especial aqui, mas o Brick exige
-          // que esse callback exista.
         },
         onSubmit: ({ selectedPaymentMethod, formData }) => {
           return new Promise(async (resolve, reject) => {
@@ -526,7 +495,6 @@ function mostrarResultadoPagamento(resposta) {
     return;
   }
 
-  // pending / in_process — comum em Pix (aguardando confirmação) e boleto
   let extra = '';
   if (resposta.qr_code_base64) {
     extra += `
@@ -567,8 +535,6 @@ function mostrarResultadoPagamento(resposta) {
         btnCopiar.textContent = 'Copiado!';
         setTimeout(() => (btnCopiar.textContent = 'Copiar Pix'), 2000);
       } catch (err) {
-        // Navegadores mais antigos / sem permissão de clipboard: seleciona o
-        // texto pra pessoa copiar manualmente com Ctrl+C.
         const campo = document.getElementById('codigo-pix-copiar');
         campo.select();
         document.execCommand('copy');
@@ -578,10 +544,6 @@ function mostrarResultadoPagamento(resposta) {
     });
   }
 
-  // Fica checando sozinho, sem a pessoa precisar apertar F5, se o
-  // pagamento já foi confirmado (o webhook do Mercado Pago atualiza o
-  // status no banco assim que o Pix compensa — aqui só ficamos de olho
-  // nisso e levamos pra tela de sucesso automaticamente).
   if (resposta.status === 'pending' || resposta.status === 'in_process') {
     iniciarVerificacaoAutomatica();
   }
@@ -600,7 +562,6 @@ function iniciarVerificacaoAutomatica() {
         resultadoEl.innerHTML = `<div class="alerta alerta-erro">Pagamento não foi aprovado. Tente novamente ou escolha outra forma de pagamento.</div>`;
       }
     } catch (err) {
-      // Falha de rede pontual não deve travar a verificação — tenta de novo no próximo ciclo.
     }
   }, 4000);
 }

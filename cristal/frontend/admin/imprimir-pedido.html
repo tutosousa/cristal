@@ -5,8 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Comprovante do pedido</title>
 <style>
-  /* Documento próprio pra impressão — sem menu, sem sidebar, sem nada do
-     resto do painel. Pensado pra caber numa folha A4. */
   * { box-sizing: border-box; }
   body {
     font-family: Arial, Helvetica, sans-serif;
@@ -59,8 +57,6 @@
     body { padding: 0; max-width: 100%; }
   }
 
-  /* Versão compacta pra impressora térmica (58mm/80mm) — ativa só se a
-     pessoa escolher esse tamanho de papel na hora de imprimir. */
   @media print and (max-width: 80mm) {
     body { font-size: 11px; padding: 4px; }
     .cabecalho { flex-direction: column; }
@@ -105,8 +101,6 @@ async function carregarPedido() {
       pedido.endereco_bairro,
     ].filter(Boolean).join(' — ');
 
-    // Entrega local de flores não usa o endereço tradicional — mostra a
-    // cidade/valor de entrega e o ponto de referência em vez disso.
     const blocoEntrega = pedido.tipo_entrega === 'entrega_local'
       ? `
         <div class="secao">

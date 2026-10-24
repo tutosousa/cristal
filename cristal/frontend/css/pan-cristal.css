@@ -1,14 +1,7 @@
-/* =========================================================================
-   PANIFICADORA PAN CRISTAL — Surubim, PE
-   Identidade própria e independente da Cristal Floricultura: vermelho forte
-   #F5000B + branco (preto só como apoio de contraste). AGRESSIVA, FORTE,
-   ENERGÉTICA — composição inspirada em referência visual (estrutura,
-   hierarquia, proporções e ritmo), com conteúdo 100% próprio da Pan Cristal.
-   Nada deste arquivo é compartilhado com css/style.css (floricultura).
-   ========================================================================= */
-
 :root {
   --pc-vermelho: #F5000B;
+  --pc-vermelho-texto: #DC000A;
+  --pc-vermelho-no-escuro: #FF4B4B;
   --pc-vermelho-escuro: #C40009;
   --pc-vermelho-profundo: #7A0006;
   --pc-vermelho-fundo: #FFF0EE;
@@ -56,7 +49,7 @@ body.pc-corpo {
 .pc-corpo h2 { font-size: clamp(1.9rem, 3.6vw, 2.7rem); }
 .pc-corpo h3 { font-size: 1.05rem; font-weight: 800; color: var(--pc-preto); }
 .pc-corpo p { margin: 0 0 1em 0; }
-.pc-corpo a { color: var(--pc-vermelho); text-decoration: none; }
+.pc-corpo :where(a) { color: var(--pc-vermelho-texto); text-decoration: none; }
 .pc-corpo a:hover { text-decoration: underline; }
 .pc-corpo img { max-width: 100%; display: block; }
 
@@ -75,15 +68,12 @@ body.pc-corpo {
   font-weight: 800;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: var(--pc-vermelho);
+  color: var(--pc-vermelho-texto);
 }
 .pc-eyebrow svg { width: 14px; height: 14px; }
 .pc-secao--preta .pc-eyebrow,
 .pc-sobre .pc-eyebrow { color: #fff; }
 
-/* ============================== BARRA UTILITÁRIA ============================== */
-/* Faixa fina no topo: assinatura da marca + contato — mesma lógica de
-   referência (utilidades acima do menu principal), conteúdo 100% próprio. */
 .pc-topbar {
   background: var(--pc-preto);
   color: rgba(255,255,255,0.82);
@@ -101,7 +91,7 @@ body.pc-corpo {
   font-family: var(--pc-fonte-titulo);
   font-style: italic;
   font-weight: 600;
-  color: var(--pc-vermelho);
+  color: var(--pc-vermelho-no-escuro);
   font-size: 0.95rem;
 }
 .pc-topbar__contato {
@@ -121,7 +111,6 @@ body.pc-corpo {
 .pc-topbar__contato svg { width: 14px; height: 14px; }
 @media (max-width: 700px) { .pc-topbar__assinatura { display: none; } }
 
-/* ============================== CABEÇALHO ============================== */
 .pc-header {
   background: var(--pc-vermelho);
   position: sticky;
@@ -137,9 +126,6 @@ body.pc-corpo {
   padding: 14px 0;
 }
 
-/* Logo real da Pan Cristal (arquivo enviado pela marca) — sobre um fundo
-   branco arredondado para manter contraste e legibilidade no cabeçalho
-   vermelho, sem distorcer, recortar ou recriar a arte original. */
 .pc-header__logo {
   display: flex;
   align-items: center;
@@ -165,7 +151,7 @@ body.pc-corpo {
   flex: 1;
 }
 .pc-header__nav a {
-  color: rgba(255,255,255,0.92);
+  color: #fff;
   font-weight: 700;
   font-size: 0.82rem;
   letter-spacing: 0.03em;
@@ -177,7 +163,7 @@ body.pc-corpo {
 .pc-header__nav a:hover { background: rgba(255,255,255,0.14); text-decoration: none; }
 .pc-header__nav a.pc-header__nav-destaque {
   background: var(--pc-branco);
-  color: var(--pc-vermelho);
+  color: var(--pc-vermelho-texto);
 }
 .pc-header__nav a.pc-header__nav-destaque:hover { background: var(--pc-cinza-claro); }
 .pc-header__home {
@@ -213,7 +199,6 @@ body.pc-corpo {
   .pc-header__menu-toggle { display: flex; }
 }
 
-/* ================================ BOTÕES ================================ */
 .pc-btn {
   display: inline-flex; align-items: center; justify-content: center; gap: 8px;
   font-family: inherit; font-size: 0.85rem; font-weight: 800;
@@ -224,7 +209,7 @@ body.pc-corpo {
 }
 .pc-btn--primario { background: var(--pc-vermelho); color: #fff; }
 .pc-btn--primario:hover { background: var(--pc-vermelho-escuro); text-decoration: none; transform: translateY(-1px); }
-.pc-btn--branco { background: var(--pc-branco); color: var(--pc-vermelho); }
+.pc-btn--branco { background: var(--pc-branco); color: var(--pc-vermelho-texto); }
 .pc-btn--branco:hover { background: var(--pc-cinza-claro); text-decoration: none; transform: translateY(-1px); }
 .pc-btn--secundario { background: transparent; color: #fff; border-color: rgba(255,255,255,0.6); }
 .pc-btn--secundario:hover { background: rgba(255,255,255,0.14); text-decoration: none; }
@@ -232,8 +217,6 @@ body.pc-corpo {
 .pc-btn--claro:hover { background: var(--pc-preto); color: #fff; text-decoration: none; }
 .pc-btn--grande { padding: 18px 34px; font-size: 0.9rem; }
 
-/* Botão com selo circular sobreposto — mesmo princípio de composição da
-   referência (destaque de ação com um pequeno acento circular na borda). */
 .pc-btn-selo {
   position: relative;
   display: inline-flex;
@@ -251,14 +234,10 @@ body.pc-corpo {
 }
 .pc-btn-selo__marca svg { width: 14px; height: 14px; }
 
-/* ================================= HERO ================================= */
-/* Banner principal = foto real enviada pela marca (fachada da loja),
-   ocupando toda a área do hero. Camada escura por trás do texto é só o
-   suficiente para leitura — discreta, sem esconder a fotografia. */
 .pc-hero {
   position: relative;
   min-height: 560px;
-  background: var(--pc-preto); /* cor de fundo enquanto a foto carrega */
+  background: var(--pc-preto);
   color: #fff;
   overflow: hidden;
   display: flex;
@@ -300,7 +279,6 @@ body.pc-corpo {
 .pc-hero p { color: rgba(255,255,255,0.82); font-size: 1.12rem; max-width: 460px; }
 .pc-hero__acoes { display: flex; gap: 16px; flex-wrap: wrap; margin-top: 22px; }
 
-/* Selo circular no canto — construído em CSS, conteúdo próprio da marca. */
 .pc-hero__selo {
   position: absolute;
   top: 40px; right: 5%;
@@ -325,8 +303,6 @@ body.pc-corpo {
 }
 @media (max-width: 900px) { .pc-hero__selo { display: none; } }
 
-/* Tira de miniaturas sobreposta à borda inferior do hero — mesma lógica
-   de "fotos escapando" da composição de referência. */
 .pc-hero__miniaturas {
   position: absolute;
   left: 24px; bottom: -34px;
@@ -355,7 +331,6 @@ body.pc-corpo {
   .pc-hero__miniaturas { display: none; }
 }
 
-/* ============================ SEÇÃO GENÉRICA ============================= */
 .pc-secao { padding: 96px 0; }
 .pc-secao--areia { background: var(--pc-cinza-claro); }
 .pc-secao--preta { background: var(--pc-preto); color: #fff; }
@@ -365,7 +340,6 @@ body.pc-corpo {
 .pc-secao--preta .pc-cabecalho p { color: rgba(255,255,255,0.72); }
 .pc-secao--preta h2 { color: #fff; }
 
-/* ---------------------------- Seleção de público (Produtos) ---------------------------- */
 .pc-opcoes {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -403,7 +377,6 @@ body.pc-corpo {
 .pc-opcao__texto strong { display: block; font-size: 0.92rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.02em; margin-bottom: 2px; }
 .pc-opcao__texto span { font-size: 0.85rem; opacity: 0.85; }
 
-/* ---------------------------- Produtos (cards estilo carrossel) ---------------------------- */
 .pc-produtos-carrossel {
   position: relative;
   display: flex;
@@ -447,7 +420,7 @@ body.pc-corpo {
   font-size: 0.78rem;
   text-transform: uppercase;
   letter-spacing: 0.02em;
-  color: var(--pc-vermelho);
+  color: var(--pc-vermelho-texto);
 }
 .pc-card__link:hover { text-decoration: none; color: var(--pc-vermelho-escuro); }
 
@@ -466,9 +439,6 @@ body.pc-corpo {
 .pc-seta svg { width: 18px; height: 18px; }
 @media (max-width: 700px) { .pc-seta { display: none; } }
 
-/* ------------------------------- Sobre / História ------------------------------- */
-/* Bloco vermelho profundo com imagem em corte diagonal — mesma lógica de
-   composição assimétrica da referência (foto cortada + texto + CTA com selo). */
 .pc-sobre {
   position: relative;
   background: var(--pc-vermelho-profundo);
@@ -483,7 +453,6 @@ body.pc-corpo {
   min-height: 460px;
 }
 @media (max-width: 860px) { .pc-sobre__grade { grid-template-columns: 1fr; min-height: 0; } }
-/* SUBSTITUIR: foto real da fachada, forno ou produção da padaria. */
 .pc-sobre__imagem {
   position: relative;
   height: 100%;
@@ -503,7 +472,6 @@ body.pc-corpo {
 .pc-sobre__texto p { color: rgba(255,255,255,0.82); max-width: 440px; }
 .pc-sobre__texto .pc-btn { margin-top: 10px; }
 
-/* ------------------------------- Galeria ------------------------------- */
 .pc-galeria-grade {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -528,14 +496,12 @@ body.pc-corpo {
 }
 .pc-galeria-item img { width: 100%; height: 100%; object-fit: cover; }
 
-/* -------------------------------- Info -------------------------------- */
 .pc-info { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; text-align: center; }
 @media (max-width: 700px) { .pc-info { grid-template-columns: 1fr; } }
 .pc-info-item { border: 1px solid var(--pc-linha); border-radius: var(--pc-raio); padding: 30px 20px; background: var(--pc-branco); }
-.pc-info-item strong { display: block; font-family: var(--pc-fonte-titulo); font-size: 1.05rem; font-weight: 700; text-transform: uppercase; margin-bottom: 8px; color: var(--pc-vermelho); }
+.pc-info-item strong { display: block; font-family: var(--pc-fonte-titulo); font-size: 1.05rem; font-weight: 700; text-transform: uppercase; margin-bottom: 8px; color: var(--pc-vermelho-texto); }
 .pc-info-item span { color: var(--pc-texto-suave); font-size: 0.9rem; }
 
-/* ------------------------------ Voltar para a Cristal ------------------------------ */
 .pc-voltar-faixa {
   background: var(--pc-branco);
   border-top: 1px solid var(--pc-linha);
@@ -544,9 +510,8 @@ body.pc-corpo {
 }
 .pc-voltar-faixa p { color: var(--pc-texto-suave); margin-bottom: 16px; font-weight: 600; }
 
-/* ================================ RODAPÉ ================================ */
-.pc-footer { background: var(--pc-vermelho); color: rgba(255,255,255,0.85); font-size: 0.9rem; }
-.pc-footer a { color: rgba(255,255,255,0.85); }
+.pc-footer { background: var(--pc-vermelho); color: #fff; font-size: 0.9rem; }
+.pc-footer a { color: #fff; }
 .pc-footer a:hover { color: #fff; }
 .pc-footer__topo {
   display: flex;
@@ -570,7 +535,7 @@ body.pc-corpo {
 }
 .pc-footer__marca-texto { display: flex; flex-direction: column; }
 .pc-footer__marca-texto strong { font-family: var(--pc-fonte-titulo); font-weight: 700; font-size: 1.15rem; text-transform: uppercase; color: #fff; }
-.pc-footer__marca-texto em { font-style: italic; font-family: var(--pc-fonte-titulo); font-size: 0.85rem; color: rgba(255,255,255,0.8); }
+.pc-footer__marca-texto em { font-style: italic; font-family: var(--pc-fonte-titulo); font-size: 0.85rem; color: #fff; }
 .pc-footer__nav { display: flex; gap: 20px; flex-wrap: wrap; }
 .pc-footer__nav a { font-weight: 700; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.03em; }
 .pc-footer__contato-pills { display: flex; gap: 10px; flex-wrap: wrap; }
@@ -604,13 +569,12 @@ body.pc-corpo {
   gap: 16px;
   flex-wrap: wrap;
   font-size: 0.8rem;
-  color: rgba(255,255,255,0.75);
+  color: #fff;
 }
-.pc-footer__barra a { color: rgba(255,255,255,0.75); }
+.pc-footer__barra a { color: #fff; }
 .pc-footer__barra a:hover { color: #fff; }
 .pc-footer__barra-links { display: flex; gap: 16px; flex-wrap: wrap; }
 
-/* =========================== RESPONSIVIDADE GERAL =========================== */
 @media (max-width: 900px) {
   .pc-hero { min-height: 480px; }
 }

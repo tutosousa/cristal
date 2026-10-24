@@ -113,7 +113,6 @@ if (obterTokenCliente()) {
 
 let clienteIdPendente = null;
 
-// ---------- Medidor de força de senha ----------
 function avaliarForcaSenha(senha) {
   let pontos = 0;
   if (senha.length >= 6) pontos++;
@@ -160,7 +159,6 @@ function conferirSenhasIguais() {
 }
 document.getElementById('confirmar_senha').addEventListener('input', conferirSenhasIguais);
 
-// ---------- Etapa 1: formulário de cadastro ----------
 document.getElementById('form-cadastro').addEventListener('submit', async (e) => {
   e.preventDefault();
   const btn = document.getElementById('btn-cadastrar');
@@ -207,7 +205,6 @@ document.getElementById('form-cadastro').addEventListener('submit', async (e) =>
   }
 });
 
-// ---------- Etapa 2: confirmar código ----------
 document.getElementById('form-codigo').addEventListener('submit', async (e) => {
   e.preventDefault();
   const btn = document.getElementById('btn-confirmar-codigo');
@@ -224,8 +221,6 @@ document.getElementById('form-codigo').addEventListener('submit', async (e) => {
       }),
     });
 
-    // Conforme pedido: depois de confirmar, volta pra tela de login normal
-    // (não loga automaticamente).
     window.location.href = 'login.html?confirmado=1';
   } catch (err) {
     alertaEl.innerHTML = `<div class="alerta alerta-erro">${escapeHtml(err.message)}</div>`;

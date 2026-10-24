@@ -10,7 +10,6 @@ const {
   deleteLancamento,
 } = require('../controllers/financeController');
 
-// Todas as rotas financeiras exigem login de admin
 router.use(requireAdminAuth);
 
 router.get('/resumo', getSummary);

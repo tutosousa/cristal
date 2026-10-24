@@ -1,9 +1,5 @@
 const { pool } = require('../config/db');
 
-// Resumo financeiro dentro de um período (padrão: últimos 30 dias).
-// Faturamento = soma dos pedidos pagos/enviados/entregues no período.
-// Custos = custo dos produtos vendidos (COGS) + despesas manuais lançadas.
-// Lucro = Faturamento - Custos.
 async function getSummary(req, res, next) {
   try {
     const inicio = req.query.inicio || defaultInicio();
@@ -61,7 +57,6 @@ async function getSummary(req, res, next) {
   }
 }
 
-// Faturamento agrupado por semana (últimas 8 semanas) para gráficos/tabelas
 async function getWeeklyReport(req, res, next) {
   try {
     const [rows] = await pool.query(
@@ -81,7 +76,6 @@ async function getWeeklyReport(req, res, next) {
   }
 }
 
-// Faturamento agrupado por mês (últimos 12 meses)
 async function getMonthlyReport(req, res, next) {
   try {
     const [rows] = await pool.query(
@@ -99,8 +93,6 @@ async function getMonthlyReport(req, res, next) {
     next(err);
   }
 }
-
-// ---------- Lançamentos manuais (despesas fixas, receitas extras, etc.) ----------
 
 async function listLancamentos(req, res, next) {
   try {

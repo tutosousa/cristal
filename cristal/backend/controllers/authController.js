@@ -1,6 +1,3 @@
-// Autenticação do painel administrativo.
-// Login com e-mail + senha; a senha é comparada com o hash bcrypt salvo no banco.
-
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { pool } = require('../config/db');
@@ -20,7 +17,6 @@ async function login(req, res, next) {
     );
 
     if (rows.length === 0) {
-      // Mensagem genérica de propósito: não revelar se o e-mail existe ou não.
       return res.status(401).json({ error: 'E-mail ou senha inválidos.' });
     }
 
@@ -46,12 +42,9 @@ async function login(req, res, next) {
   }
 }
 
-// Retorna os dados do admin logado (útil para o front confirmar a sessão)
 async function me(req, res) {
   res.json({ admin: req.admin });
 }
-
-// ---------- Recuperação de senha ("Esqueci minha senha") ----------
 
 async function esqueciSenha(req, res, next) {
   try {
@@ -60,7 +53,6 @@ async function esqueciSenha(req, res, next) {
 
     const resultado = await solicitarRecuperacao('admin', email);
 
-    // Resposta genérica de propósito (não revela se o e-mail existe)
     res.json({
       message: 'Se este e-mail estiver cadastrado, enviamos um código de recuperação.',
       codigo_simulado: resultado.codigoSimulado,

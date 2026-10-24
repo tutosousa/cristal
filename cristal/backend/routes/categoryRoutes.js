@@ -11,10 +11,8 @@ const {
   removeCategoryImage,
 } = require('../controllers/categoryController');
 
-// Pública
 router.get('/', listCategories);
 
-// Admin
 router.get('/admin/all', requireAdminAuth, listCategoriesAdmin);
 router.post('/', requireAdminAuth, uploadCategoria.single('imagem'), createCategory);
 router.put('/:id', requireAdminAuth, uploadCategoria.single('imagem'), updateCategory);

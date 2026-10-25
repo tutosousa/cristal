@@ -3,7 +3,7 @@ function urlImagem(caminho) {
   return /^https?:\/\//i.test(caminho) ? caminho : `${BACKEND_ORIGIN}${caminho}`;
 }
 <<<<<<< HEAD
-const BACKEND_ORIGIN = 'https://cristal-beta.vercel.app';
+   const BACKEND_ORIGIN = 'https://cristal-beta.vercel.app';
 =======
 //
 // Enquanto estiver testando no seu computador, deixe como está (localhost).

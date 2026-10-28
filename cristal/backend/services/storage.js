@@ -43,12 +43,21 @@ function enviarBuffer(file, pasta) {
 function criarEnvioMiddleware(pasta) {
   return async function enviarArquivos(req, res, next) {
     try {
+      // Em produção na Vercel, nunca tentar salvar uploads no disco local.
+      if (process.env.VERCEL === '1' && !cloudinaryAtivo()) {
+        return res.status(503).json({
+          error: 'Armazenamento de imagens não configurado. Configure CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY e CLOUDINARY_API_SECRET nas variáveis de ambiente da Vercel.'
+        });
+      }
       const arquivos = req.files ? (Array.isArray(req.files) ? req.files : []) : req.file ? [req.file] : [];
       for (const f of arquivos) {
         if (cloudinaryAtivo()) {
           const resultado = await enviarBuffer(f, pasta);
           f.urlFinal = resultado.secure_url;
         } else {
+          if (!f.filename) {
+            return res.status(503).json({ error: 'Cloudinary não está configurado para receber imagens neste ambiente.' });
+          }
           f.urlFinal = `/uploads/${pasta}/${f.filename}`;
         }
       }

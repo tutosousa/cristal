@@ -15,7 +15,10 @@ function fileFilter(req, file, cb) {
 }
 
 function criarUploader({ pasta, prefixo, maxArquivos }) {
-  const storage = cloudinaryAtivo()
+  // Na Vercel, o filesystem da aplicação é somente leitura.
+  // Sempre manter os arquivos em memória para enviá-los ao Cloudinary.
+  const usarMemoria = cloudinaryAtivo() || process.env.VERCEL === '1';
+  const storage = usarMemoria
     ? multer.memoryStorage()
     : multer.diskStorage({
         destination: (req, file, cb) => {

@@ -35,10 +35,10 @@ function adicionarAoCarrinho(produto, quantidade, variacao = {}) {
       nome: produto.nome,
       tamanho,
       cor,
-      preco_varejo: Number(produto.preco_varejo),
-      preco_atacado: produto.preco_atacado ? Number(produto.preco_atacado) : null,
-      quantidade_minima_atacado: produto.quantidade_minima_atacado || 50,
-      imagem_url: produto.imagem_url,
+      preco_varejo: Number(variacao.preco ?? produto.preco_varejo),
+      preco_variacao: variacao.preco == null ? null : Number(variacao.preco),
+      descricao_variacao: variacao.descricao || null,
+      imagem_url: variacao.imagem_url || produto.imagem_url,
       possui_flores: Boolean(produto.possui_flores),
       quantidade,
     });
@@ -70,12 +70,10 @@ function limparCarrinho() {
 }
 
 function calcularItem(item) {
-  const precoComDesconto =
-    item.preco_atacado && item.quantidade >= item.quantidade_minima_atacado;
-  const precoUnitario = precoComDesconto ? item.preco_atacado : item.preco_varejo;
+  const precoUnitario = Number(item.preco_variacao ?? item.preco_varejo);
   return {
     ...item,
-    precoComDesconto,
+    precoComDesconto: false,
     precoUnitario,
     subtotal: precoUnitario * item.quantidade,
   };

@@ -109,15 +109,6 @@ let indiceFotoAtual = 0;
 let corSelecionada = null;
 let tamanhoSelecionado = null;
 
-function montarAvisoDesconto(produto) {
-  if (!produto.preco_atacado) return '';
-  return `
-    <p class="texto-suave" style="font-size:0.86rem; margin-top:-4px;">
-      A partir de ${produto.quantidade_minima_atacado} unidades, o preço unitário passa a ser ${formatarPreco(produto.preco_atacado)}.
-    </p>
-  `;
-}
-
 function trocarFotoPrincipal(indice) {
   indiceFotoAtual = indice;
   const principal = document.getElementById('foto-principal');
@@ -164,7 +155,7 @@ function montarSeletorTamanhos(produto) {
     <div class="campo">
       <label>Tamanho${tamanhoSelecionado ? `: ${escapeHtml(tamanhoSelecionado)}` : ''}</label>
       <div class="seletor-tamanhos">
-        ${produto.tamanhos.map((t) => `
+        ${produto.tamanhos.filter((t) => t.ativo !== 0).map((t) => `
           <button type="button" class="seletor-tamanhos__pill ${t.tamanho === tamanhoSelecionado ? 'ativa' : ''}"
                   data-tamanho="${escapeHtml(t.tamanho)}">
             ${escapeHtml(t.tamanho)}
@@ -205,18 +196,18 @@ function renderizarProduto(produto) {
       <div>
         <span class="produto-card__categoria">${escapeHtml(produto.categoria)}</span>
         <h1>${escapeHtml(produto.nome)}</h1>
-        <div class="preco-destaque" id="preco-exibido">${formatarPreco(produto.preco_varejo)}</div>
-        ${montarAvisoDesconto(produto)}
+        <div class="preco-destaque" id="preco-exibido">${produto.possui_flores && !(Number(produto.preco_varejo) > 0) ? 'Escolha o tamanho' : formatarPreco(produto.preco_varejo)}</div>
 
         <div id="area-cores">${montarSeletorCores(produto)}</div>
         <div id="area-tamanhos">${montarSeletorTamanhos(produto)}</div>
 
         <div class="quantidade-seletor">
           <button type="button" id="btn-menos" aria-label="Diminuir quantidade">−</button>
-          <input type="number" id="input-quantidade" value="1" min="1" max="${produto.estoque}">
+          <input type="number" id="input-quantidade" value="1" min="1" max="${produto.possui_flores ? 99 : produto.estoque}">
           <button type="button" id="btn-mais" aria-label="Aumentar quantidade">+</button>
         </div>
-        <p class="texto-suave" id="texto-estoque">${produto.estoque} unidades em estoque</p>
+        <p class="texto-suave" id="texto-estoque">${produto.possui_flores ? "" : `${produto.estoque} unidades em estoque`}</p>
+        <p class="texto-suave" id="descricao-tamanho" style="margin-top:10px;"></p>
 
         <button class="btn btn-primario btn-grande btn-bloco" id="btn-adicionar">
           Adicionar ao carrinho
@@ -242,10 +233,23 @@ function renderizarProduto(produto) {
   const precoEl = document.getElementById('preco-exibido');
 
   function atualizarPrecoExibido() {
-    const qtd = Number(inputQtd.value) || 1;
-    const ehDesconto = produto.preco_atacado && qtd >= produto.quantidade_minima_atacado;
-    const preco = ehDesconto ? produto.preco_atacado : produto.preco_varejo;
-    precoEl.textContent = formatarPreco(preco);
+    const tamanho = (produto.tamanhos || []).find((t) => t.tamanho === tamanhoSelecionado);
+    const preco = produto.possui_flores ? Number(tamanho && tamanho.preco || 0) : Number(produto.preco_varejo);
+    precoEl.textContent = preco > 0 ? formatarPreco(preco) : 'Selecione um tamanho';
+    const descricaoEl = document.getElementById('descricao-tamanho');
+    if (descricaoEl) descricaoEl.textContent = tamanho && tamanho.descricao ? tamanho.descricao : '';
+    if (produto.possui_flores && tamanho && tamanho.imagem_url) {
+      galeriaAtual = [tamanho.imagem_url];
+      indiceFotoAtual = 0;
+      const galeriaEl = document.getElementById('galeria-produto');
+      if (galeriaEl) galeriaEl.outerHTML = montarGaleria(produto);
+    } else if (produto.possui_flores && (!tamanho || !tamanho.imagem_url)) {
+      galeriaAtual = produto.galeria || [];
+      indiceFotoAtual = 0;
+      const galeriaEl = document.getElementById('galeria-produto');
+      if (galeriaEl) galeriaEl.outerHTML = montarGaleria(produto);
+    }
+    document.querySelectorAll('.produto-detalhe__miniaturas button').forEach((btn) => btn.addEventListener('click', () => trocarFotoPrincipal(Number(btn.dataset.indice))));
   }
 
   document.getElementById('btn-menos').addEventListener('click', () => {
@@ -253,7 +257,7 @@ function renderizarProduto(produto) {
     atualizarPrecoExibido();
   });
   document.getElementById('btn-mais').addEventListener('click', () => {
-    inputQtd.value = Math.min(produto.estoque, Number(inputQtd.value) + 1);
+    inputQtd.value = Math.min(produto.possui_flores ? 99 : produto.estoque, Number(inputQtd.value) + 1);
     atualizarPrecoExibido();
   });
   inputQtd.addEventListener('input', atualizarPrecoExibido);
@@ -262,7 +266,7 @@ function renderizarProduto(produto) {
     const msgSelecione = document.getElementById('mensagem-selecione');
     const faltando = [];
     if (produto.cores && produto.cores.length > 0 && !corSelecionada) faltando.push('a cor');
-    if (produto.tamanhos && produto.tamanhos.length > 0 && !tamanhoSelecionado) faltando.push('o tamanho');
+    if ((produto.possui_flores || (produto.tamanhos && produto.tamanhos.length > 0)) && !tamanhoSelecionado) faltando.push('o tamanho');
 
     if (faltando.length > 0) {
       msgSelecione.textContent = `Selecione ${faltando.join(' e ')} antes de adicionar ao carrinho.`;
@@ -272,16 +276,22 @@ function renderizarProduto(produto) {
     }
 
     const estoqueAtual = obterEstoqueAtual(produto);
-    if (estoqueAtual <= 0) {
+    if (!produto.possui_flores && estoqueAtual <= 0) {
       msgSelecione.textContent = 'Sem estoque para essa combinação no momento.';
       msgSelecione.style.display = 'block';
       setTimeout(() => (msgSelecione.style.display = 'none'), 3000);
       return;
     }
 
-    const qtd = Math.min(estoqueAtual, Math.max(1, Number(inputQtd.value) || 1));
+    const qtd = produto.possui_flores ? Math.max(1, Number(inputQtd.value) || 1) : Math.min(estoqueAtual, Math.max(1, Number(inputQtd.value) || 1));
     const nomeCor = corSelecionada ? (produto.cores.find((c) => c.id === corSelecionada) || {}).nome : null;
-    adicionarAoCarrinho(produto, qtd, { tamanho: tamanhoSelecionado, cor: nomeCor });
+    const tamanhoObj = (produto.tamanhos || []).find((t) => t.tamanho === tamanhoSelecionado);
+    if (produto.possui_flores && (!tamanhoObj || !Number(tamanhoObj.preco) || Number(tamanhoObj.preco) <= 0)) {
+      msgSelecione.textContent = 'Este tamanho ainda não possui preço configurado. Entre em contato com a floricultura.';
+      msgSelecione.style.display = 'block';
+      return;
+    }
+    adicionarAoCarrinho(produto, qtd, { tamanho: tamanhoSelecionado, cor: nomeCor, preco: produto.possui_flores ? tamanhoObj.preco : null, descricao: tamanhoObj && tamanhoObj.descricao, imagem_url: tamanhoObj && tamanhoObj.imagem_url });
     const msg = document.getElementById('mensagem-adicionado');
     msg.style.display = 'block';
     setTimeout(() => (msg.style.display = 'none'), 2500);
@@ -289,6 +299,7 @@ function renderizarProduto(produto) {
 }
 
 function obterEstoqueAtual(produto) {
+  if (produto.possui_flores) return Infinity;
   if (!produto.variacoes || produto.variacoes.length === 0) {
     return produto.estoque;
   }
@@ -309,6 +320,13 @@ function atualizarEstoqueExibido(produto) {
   const inputQtd = document.getElementById('input-quantidade');
   const btnAdicionar = document.getElementById('btn-adicionar');
   if (!textoEl || !inputQtd || !btnAdicionar) return;
+  if (produto.possui_flores) {
+    textoEl.textContent = '';
+    inputQtd.max = 99;
+    if (Number(inputQtd.value) < 1) inputQtd.value = 1;
+    btnAdicionar.disabled = false;
+    return;
+  }
 
   if (estoqueAtual <= 0) {
     textoEl.textContent = 'Sem estoque para essa combinação no momento.';
@@ -341,6 +359,18 @@ function ligarEventosVariacoes(produto) {
       document.getElementById('area-tamanhos').innerHTML = montarSeletorTamanhos(produto);
       ligarEventosVariacoes(produto);
       atualizarEstoqueExibido(produto);
+      const precoEl = document.getElementById('preco-exibido');
+      const tamanho = (produto.tamanhos || []).find((t) => t.tamanho === tamanhoSelecionado);
+      if (produto.possui_flores && precoEl) {
+        precoEl.textContent = tamanho && Number(tamanho.preco) > 0 ? formatarPreco(tamanho.preco) : 'Selecione um tamanho';
+        const descricaoEl = document.getElementById('descricao-tamanho');
+        if (descricaoEl) descricaoEl.textContent = tamanho && tamanho.descricao ? tamanho.descricao : '';
+        galeriaAtual = tamanho && tamanho.imagem_url ? [tamanho.imagem_url] : (produto.galeria || []);
+        indiceFotoAtual = 0;
+        const galeriaEl = document.getElementById('galeria-produto');
+        if (galeriaEl) galeriaEl.outerHTML = montarGaleria(produto);
+        document.querySelectorAll('.produto-detalhe__miniaturas button').forEach((thumb) => thumb.addEventListener('click', () => trocarFotoPrincipal(Number(thumb.dataset.indice))));
+      }
     };
   });
 }

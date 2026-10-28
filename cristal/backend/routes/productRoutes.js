@@ -16,6 +16,9 @@ const {
   updateColor,
   deleteColor,
   createSize,
+  updateSize,
+  uploadSizeImage,
+  deleteSizeImage,
   deleteSize,
   salvarVariacoesEstoque,
   definirFotoPrincipal,
@@ -38,6 +41,9 @@ router.put('/admin/:id/cores/:corId', requireAdminAuth, updateColor);
 router.delete('/admin/:id/cores/:corId', requireAdminAuth, deleteColor);
 
 router.post('/admin/:id/tamanhos', requireAdminAuth, createSize);
+router.put('/admin/:id/tamanhos/:tamanhoId', requireAdminAuth, updateSize);
+router.post('/admin/:id/tamanhos/:tamanhoId/imagem', requireAdminAuth, ...upload.single('imagem'), uploadSizeImage);
+router.delete('/admin/:id/tamanhos/:tamanhoId/imagem', requireAdminAuth, deleteSizeImage);
 router.delete('/admin/:id/tamanhos/:tamanhoId', requireAdminAuth, deleteSize);
 
 router.put('/admin/:id/variacoes', requireAdminAuth, salvarVariacoesEstoque);

@@ -109,7 +109,7 @@ async function carregarPedido() {
           <div class="linha-dado"><strong>Ponto de referência:</strong> ${escapeHtml(pedido.ponto_referencia || '—')}</div>
         </div>
       `
-      : pedido.tipo_entrega === 'combinado_atacado'
+      : pedido.tipo_entrega === 'combinado'
       ? `
         <div class="secao">
           <h2>Entrega</h2>

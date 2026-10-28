@@ -82,7 +82,7 @@ function formatarEntrega(p) {
     const referencia = p.ponto_referencia ? ` <br><span class="texto-suave" style="font-size:0.78rem;">Ref.: ${escapeHtml(p.ponto_referencia)}</span>` : '';
     return `<span class="badge badge-pago">Entrega local</span><br>${escapeHtml(p.cidade_entrega || '—')}${referencia}`;
   }
-  if (p.tipo_entrega === 'combinado_atacado') {
+  if (p.tipo_entrega === 'combinado') {
     return `<span class="badge badge-pendente">Envio combinado</span>`;
   }
   return `${escapeHtml(p.endereco_cidade || '—')}/${escapeHtml(p.endereco_estado || '')}<br><span class="texto-suave" style="font-size:0.78rem;">Melhor Envio</span>`;

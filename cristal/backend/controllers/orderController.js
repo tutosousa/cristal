@@ -46,8 +46,6 @@ async function getShippingQuote(req, res, next) {
   }
 }
 
-const QUANTIDADE_MINIMA_PEDIDO_ATACADO = 12;
-
 async function createOrder(req, res, next) {
   const connection = await pool.getConnection();
   try {
@@ -67,19 +65,10 @@ async function createOrder(req, res, next) {
     const cliente_nome = req.cliente.nome;
     const cliente_email = req.cliente.email;
 
-    const tipoPedido = tipo_pedido === 'atacado' ? 'atacado' : 'varejo';
+    const tipoPedido = 'varejo';
 
     if (!cliente_nome || !cliente_telefone || !itens || itens.length === 0) {
       return res.status(400).json({ error: 'Dados do pedido incompletos.' });
-    }
-
-    if (tipoPedido === 'atacado') {
-      const totalPecas = itens.reduce((soma, item) => soma + (Number(item.quantidade) || 0), 0);
-      if (totalPecas < QUANTIDADE_MINIMA_PEDIDO_ATACADO) {
-        return res.status(400).json({
-          error: `O pedido mínimo em compras de quantidade é de ${QUANTIDADE_MINIMA_PEDIDO_ATACADO} unidades (você tem ${totalPecas}).`,
-        });
-      }
     }
 
     await connection.beginTransaction();
@@ -89,7 +78,7 @@ async function createOrder(req, res, next) {
 
     for (const item of itens) {
       const [produtoRows] = await connection.query(
-        'SELECT id, nome, preco_varejo, preco_atacado, preco_custo, desconto_atacado_percentual, quantidade_minima_atacado, estoque, peso_kg, altura_cm, largura_cm, comprimento_cm, possui_flores FROM produtos WHERE id = ? AND ativo = 1 FOR UPDATE',
+        'SELECT id, nome, preco_varejo, preco_custo, estoque, peso_kg, altura_cm, largura_cm, comprimento_cm, possui_flores FROM produtos WHERE id = ? AND ativo = 1 FOR UPDATE',
         [item.produto_id]
       );
 
@@ -107,6 +96,7 @@ async function createOrder(req, res, next) {
 
       let variacaoId = null;
       let estoqueDisponivel = produto.estoque;
+      let tamanhoProduto = null;
 
       if (item.cor || item.tamanho) {
         let corId = null;
@@ -120,10 +110,10 @@ async function createOrder(req, res, next) {
         }
         if (item.tamanho) {
           const [tamRows] = await connection.query(
-            'SELECT id FROM produto_tamanhos WHERE produto_id = ? AND tamanho = ?',
+            'SELECT id, tamanho, descricao, preco, imagem_url, ativo FROM produto_tamanhos WHERE produto_id = ? AND tamanho = ? AND ativo = 1',
             [produto.id, item.tamanho]
           );
-          if (tamRows.length > 0) tamanhoId = tamRows[0].id;
+          if (tamRows.length > 0) { tamanhoId = tamRows[0].id; tamanhoProduto = tamRows[0]; }
         }
 
         const [variacaoRows] = await connection.query(
@@ -136,7 +126,11 @@ async function createOrder(req, res, next) {
         }
       }
 
-      if (estoqueDisponivel < quantidade) {
+      if (produto.possui_flores && (!item.tamanho || !tamanhoProduto || !tamanhoProduto.preco || Number(tamanhoProduto.preco) <= 0)) {
+        throw Object.assign(new Error(`Selecione um tamanho com preço configurado para "${produto.nome}".`), { status: 400, expose: true });
+      }
+
+      if (!produto.possui_flores && estoqueDisponivel < quantidade) {
         const variacaoTexto = [item.cor, item.tamanho].filter(Boolean).join(' / ');
         throw Object.assign(
           new Error(`Estoque insuficiente para "${produto.nome}"${variacaoTexto ? ` (${variacaoTexto})` : ''}. Disponível: ${estoqueDisponivel}.`),
@@ -144,14 +138,9 @@ async function createOrder(req, res, next) {
         );
       }
 
-      const isAtacado =
-        tipoPedido === 'atacado'
-          ? Boolean(produto.preco_atacado)
-          : quantidade >= (produto.quantidade_minima_atacado || 50);
-
-      const precoUnitario = isAtacado && produto.preco_atacado
-        ? produto.preco_atacado
-        : produto.preco_varejo;
+      const precoUnitario = produto.possui_flores
+        ? Number(tamanhoProduto.preco)
+        : Number(produto.preco_varejo);
 
       const itemSubtotal = precoUnitario * quantidade;
       subtotal += itemSubtotal;
@@ -165,7 +154,7 @@ async function createOrder(req, res, next) {
         preco_unitario: precoUnitario,
         preco_custo_unitario: produto.preco_custo,
         subtotal: itemSubtotal,
-        tipo_preco: isAtacado ? 'atacado' : 'varejo',
+        tipo_preco: 'varejo',
         peso_kg: produto.peso_kg,
         altura_cm: produto.altura_cm,
         largura_cm: produto.largura_cm,
@@ -173,16 +162,12 @@ async function createOrder(req, res, next) {
         possui_flores: Boolean(produto.possui_flores),
       });
 
-      if (variacaoId) {
-        await connection.query('UPDATE produto_variacoes SET estoque = estoque - ? WHERE id = ?', [
-          quantidade,
-          variacaoId,
-        ]);
-      } else {
-        await connection.query('UPDATE produtos SET estoque = estoque - ? WHERE id = ?', [
-          quantidade,
-          produto.id,
-        ]);
+      if (!produto.possui_flores) {
+        if (variacaoId) {
+          await connection.query('UPDATE produto_variacoes SET estoque = estoque - ? WHERE id = ?', [quantidade, variacaoId]);
+        } else {
+          await connection.query('UPDATE produtos SET estoque = estoque - ? WHERE id = ?', [quantidade, produto.id]);
+        }
       }
     }
 
@@ -193,7 +178,7 @@ async function createOrder(req, res, next) {
     let frete = 0;
     let freteDescricao = null;
     let fretePrazoDias = null;
-    let tipoEntrega = 'combinado_atacado';
+    let tipoEntrega = 'melhor_envio';
     let cidadeEntregaSalva = null;
     let pontoReferenciaSalvo = null;
     let enderecoCidadeFinal = endereco_cidade || null;
@@ -201,7 +186,7 @@ async function createOrder(req, res, next) {
 
     const pedidoTemFlores = itensProcessados.some((item) => item.possui_flores);
 
-    if (tipoPedido !== 'atacado' && pedidoTemFlores) {
+    if (pedidoTemFlores) {
       tipoEntrega = 'entrega_local';
 
       const cidadeInformada = (req.body.cidade_entrega || '').trim();
@@ -230,7 +215,7 @@ async function createOrder(req, res, next) {
       const { municipio, uf } = separarMunicipioUf(cidadeValida.cidade);
       enderecoCidadeFinal = municipio;
       enderecoEstadoFinal = uf;
-    } else if (tipoPedido !== 'atacado') {
+    } else {
       tipoEntrega = 'melhor_envio';
 
       if (!endereco_estado || !endereco_cep) {
@@ -272,12 +257,12 @@ async function createOrder(req, res, next) {
         cliente_nome,
         cliente_telefone,
         cliente_email || null,
-        pedidoTemFlores && tipoPedido !== 'atacado' ? null : endereco_rua || null,
-        pedidoTemFlores && tipoPedido !== 'atacado' ? null : endereco_numero || null,
-        pedidoTemFlores && tipoPedido !== 'atacado' ? null : endereco_bairro || null,
+        pedidoTemFlores ? null : endereco_rua || null,
+        pedidoTemFlores ? null : endereco_numero || null,
+        pedidoTemFlores ? null : endereco_bairro || null,
         enderecoCidadeFinal || endereco_cidade || null,
         (enderecoEstadoFinal || endereco_estado || '').toUpperCase(),
-        pedidoTemFlores && tipoPedido !== 'atacado' ? null : endereco_cep || null,
+        pedidoTemFlores ? null : endereco_cep || null,
         subtotal,
         frete,
         total,
@@ -330,12 +315,12 @@ async function createOrder(req, res, next) {
       total,
       forma_pagamento: forma_pagamento || 'mercado_pago',
       status: statusFinal,
-      endereco_rua: pedidoTemFlores && tipoPedido !== 'atacado' ? null : endereco_rua,
-      endereco_numero: pedidoTemFlores && tipoPedido !== 'atacado' ? null : endereco_numero,
-      endereco_bairro: pedidoTemFlores && tipoPedido !== 'atacado' ? null : endereco_bairro,
+      endereco_rua: pedidoTemFlores ? null : endereco_rua,
+      endereco_numero: pedidoTemFlores ? null : endereco_numero,
+      endereco_bairro: pedidoTemFlores ? null : endereco_bairro,
       endereco_cidade: enderecoCidadeFinal || endereco_cidade,
       endereco_estado: enderecoEstadoFinal || endereco_estado,
-      endereco_cep: pedidoTemFlores && tipoPedido !== 'atacado' ? null : endereco_cep,
+      endereco_cep: pedidoTemFlores ? null : endereco_cep,
       tipo_entrega: tipoEntrega,
       cidade_entrega: cidadeEntregaSalva,
       ponto_referencia: pontoReferenciaSalvo,

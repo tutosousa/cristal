@@ -250,7 +250,7 @@ function renderizarProdutoCard(produto) {
         <span class="produto-card__categoria">${escapeHtml(produto.categoria)}</span>
         <h3 class="produto-card__nome">${escapeHtml(produto.nome)}</h3>
         <div class="produto-card__preco">
-          ${formatarPreco(produto.preco_varejo)}
+          ${produto.possui_flores && !(Number(produto.preco_varejo) > 0) ? 'Escolha o tamanho' : formatarPreco(produto.preco_varejo)}
         </div>
       </div>
     </a>

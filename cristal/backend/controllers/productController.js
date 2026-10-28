@@ -1,13 +1,12 @@
 const { pool } = require('../config/db');
-const { urlDoArquivo } = require('../services/storage');
+const { urlDoArquivo, removerArquivo } = require('../services/storage');
 
 async function listPublicProducts(req, res, next) {
   try {
     const { categoria } = req.query;
 
     let sql = `
-      SELECT p.id, p.nome, p.descricao, p.preco_varejo, p.preco_atacado,
-             p.desconto_atacado_percentual, p.quantidade_minima_atacado,
+      SELECT p.id, p.nome, p.descricao, CASE WHEN p.possui_flores = 1 THEN (SELECT MIN(pt.preco) FROM produto_tamanhos pt WHERE pt.produto_id = p.id AND pt.ativo = 1 AND pt.preco > 0) ELSE p.preco_varejo END AS preco_varejo,
              p.imagem_url, p.estoque, p.possui_flores, c.nome AS categoria, c.slug AS categoria_slug
       FROM produtos p
       JOIN categorias c ON c.id = p.categoria_id
@@ -33,8 +32,7 @@ async function getPublicProduct(req, res, next) {
   try {
     const { id } = req.params;
     const [rows] = await pool.query(
-      `SELECT p.id, p.nome, p.descricao, p.preco_varejo, p.preco_atacado,
-              p.desconto_atacado_percentual, p.quantidade_minima_atacado,
+      `SELECT p.id, p.nome, p.descricao, CASE WHEN p.possui_flores = 1 THEN (SELECT MIN(pt.preco) FROM produto_tamanhos pt WHERE pt.produto_id = p.id AND pt.ativo = 1 AND pt.preco > 0) ELSE p.preco_varejo END AS preco_varejo,
               p.imagem_url, p.estoque, p.possui_flores, c.nome AS categoria, c.slug AS categoria_slug
        FROM produtos p
        JOIN categorias c ON c.id = p.categoria_id
@@ -55,7 +53,7 @@ async function getPublicProduct(req, res, next) {
       [id]
     );
     const [tamanhos] = await pool.query(
-      'SELECT id, tamanho FROM produto_tamanhos WHERE produto_id = ? ORDER BY ordem ASC, id ASC',
+      'SELECT id, tamanho, descricao, preco, imagem_url, ativo FROM produto_tamanhos WHERE produto_id = ? AND ativo = 1 ORDER BY ordem ASC, id ASC',
       [id]
     );
     const [variacoes] = await pool.query(
@@ -91,7 +89,7 @@ async function getPublicProduct(req, res, next) {
 async function listAdminProducts(req, res, next) {
   try {
     const [rows] = await pool.query(
-      `SELECT p.*, c.nome AS categoria
+      `SELECT p.*, CASE WHEN p.possui_flores = 1 THEN COALESCE((SELECT MIN(pt.preco) FROM produto_tamanhos pt WHERE pt.produto_id = p.id AND pt.ativo = 1 AND pt.preco > 0), 0) ELSE p.preco_varejo END AS preco_exibicao, c.nome AS categoria
        FROM produtos p
        JOIN categorias c ON c.id = p.categoria_id
        ORDER BY p.criado_em DESC`
@@ -118,7 +116,7 @@ async function getAdminProduct(req, res, next) {
       [id]
     );
     const [tamanhos] = await pool.query(
-      'SELECT id, tamanho FROM produto_tamanhos WHERE produto_id = ? ORDER BY ordem ASC, id ASC',
+      'SELECT id, tamanho, descricao, preco, imagem_url, ativo FROM produto_tamanhos WHERE produto_id = ? ORDER BY ordem ASC, id ASC',
       [id]
     );
     const [variacoes] = await pool.query(
@@ -164,9 +162,6 @@ async function createProduct(req, res, next) {
       categoria_id,
       preco_custo,
       preco_varejo,
-      preco_atacado,
-      desconto_atacado_percentual,
-      quantidade_minima_atacado,
       estoque,
       peso_kg,
       altura_cm,
@@ -175,13 +170,13 @@ async function createProduct(req, res, next) {
       possui_flores,
     } = req.body;
 
-    if (!nome || !categoria_id || preco_varejo === undefined) {
-      return res.status(400).json({
-        error: 'Nome, categoria e preço de varejo são obrigatórios.',
-      });
-    }
-
     const possuiFloresBool = ['true', 'on', '1', 1, true].includes(possui_flores);
+    if (!nome || !categoria_id || (!possuiFloresBool && (preco_varejo === undefined || preco_varejo === '' || Number(preco_varejo) <= 0))) {
+      return res.status(400).json({ error: 'Nome e categoria são obrigatórios; produtos sem flores também precisam de preço maior que zero.' });
+    }
+    if (!possuiFloresBool && (estoque === undefined || estoque === '' || Number(estoque) < 0 || !Number.isFinite(Number(estoque)))) {
+      return res.status(400).json({ error: 'Informe um estoque válido para produtos sem flores.' });
+    }
 
     const arquivos = req.files || [];
     const urls = arquivos.map((f) => urlDoArquivo(f));
@@ -198,11 +193,11 @@ async function createProduct(req, res, next) {
         descricao || null,
         categoria_id,
         preco_custo || 0,
-        preco_varejo,
-        preco_atacado || null,
-        desconto_atacado_percentual || 0,
-        quantidade_minima_atacado || 50,
-        estoque || 0,
+        possuiFloresBool ? 0 : preco_varejo,
+        null,
+        0,
+        1,
+        possuiFloresBool ? 0 : (estoque || 0),
         imagem_url,
         peso_kg || 0.3,
         altura_cm || 15,
@@ -222,6 +217,13 @@ async function createProduct(req, res, next) {
       );
     }
 
+    if (possuiFloresBool) {
+      await pool.query(
+        `INSERT INTO produto_tamanhos (produto_id, tamanho, ordem) VALUES (?, 'P', 0), (?, 'M', 1), (?, 'G', 2)`,
+        [produtoId, produtoId, produtoId]
+      );
+    }
+
     res.status(201).json({ id: produtoId, message: 'Produto criado com sucesso.' });
   } catch (err) {
     next(err);
@@ -237,9 +239,6 @@ async function updateProduct(req, res, next) {
       categoria_id,
       preco_custo,
       preco_varejo,
-      preco_atacado,
-      desconto_atacado_percentual,
-      quantidade_minima_atacado,
       estoque,
       ativo,
       peso_kg,
@@ -260,6 +259,13 @@ async function updateProduct(req, res, next) {
         : ['true', 'on', '1', 1, true].includes(possui_flores)
           ? 1
           : 0;
+
+    if (!possuiFloresFinal && estoque !== undefined && estoque !== '' && (!Number.isFinite(Number(estoque)) || Number(estoque) < 0)) {
+      return res.status(400).json({ error: 'Informe um estoque válido para produtos sem flores.' });
+    }
+    if (!possuiFloresFinal && preco_varejo !== undefined && preco_varejo !== '' && (!Number.isFinite(Number(preco_varejo)) || Number(preco_varejo) <= 0)) {
+      return res.status(400).json({ error: 'O preço do produto deve ser maior que zero.' });
+    }
 
     const arquivos = req.files || [];
     const novasUrls = arquivos.map((f) => urlDoArquivo(f));
@@ -284,7 +290,7 @@ async function updateProduct(req, res, next) {
     await pool.query(
       `UPDATE produtos SET
         nome = ?, descricao = ?, categoria_id = ?, preco_custo = ?, preco_varejo = ?,
-        preco_atacado = ?, desconto_atacado_percentual = ?, quantidade_minima_atacado = ?,
+        preco_atacado = NULL, desconto_atacado_percentual = 0, quantidade_minima_atacado = 1,
         estoque = ?, imagem_url = ?, ativo = ?,
         peso_kg = ?, altura_cm = ?, largura_cm = ?, comprimento_cm = ?, possui_flores = ?
        WHERE id = ?`,
@@ -294,10 +300,7 @@ async function updateProduct(req, res, next) {
         categoria_id ?? existing[0].categoria_id,
         preco_custo ?? existing[0].preco_custo,
         preco_varejo ?? existing[0].preco_varejo,
-        preco_atacado ?? existing[0].preco_atacado,
-        desconto_atacado_percentual ?? existing[0].desconto_atacado_percentual,
-        quantidade_minima_atacado ?? existing[0].quantidade_minima_atacado,
-        estoque ?? existing[0].estoque,
+        possuiFloresFinal ? 0 : (estoque ?? existing[0].estoque),
         imagem_url,
         ativo ?? existing[0].ativo,
         peso_kg ?? existing[0].peso_kg,
@@ -308,6 +311,19 @@ async function updateProduct(req, res, next) {
         id,
       ]
     );
+
+    if (possuiFloresFinal) {
+      await pool.query("UPDATE produto_tamanhos SET ativo = 0 WHERE produto_id = ? AND tamanho NOT IN ('P', 'M', 'G')", [id]);
+      const [tamanhosAtuais] = await pool.query('SELECT tamanho FROM produto_tamanhos WHERE produto_id = ?', [id]);
+      const existentes = new Set(tamanhosAtuais.map((t) => String(t.tamanho).toUpperCase()));
+      for (const [tamanho, ordem] of [['P', 0], ['M', 1], ['G', 2]]) {
+        if (!existentes.has(tamanho)) {
+          await pool.query('INSERT INTO produto_tamanhos (produto_id, tamanho, ordem) VALUES (?, ?, ?)', [id, tamanho, ordem]);
+        } else {
+          await pool.query('UPDATE produto_tamanhos SET ativo = 1 WHERE produto_id = ? AND tamanho = ?', [id, tamanho]);
+        }
+      }
+    }
 
     res.json({ message: 'Produto atualizado com sucesso.' });
   } catch (err) {
@@ -462,6 +478,67 @@ async function createSize(req, res, next) {
   }
 }
 
+async function updateSize(req, res, next) {
+  try {
+    const { id, tamanhoId } = req.params;
+    const { tamanho, descricao, preco, ativo } = req.body;
+    const [rows] = await pool.query(
+      'SELECT id FROM produto_tamanhos WHERE id = ? AND produto_id = ?',
+      [tamanhoId, id]
+    );
+    if (!rows.length) return res.status(404).json({ error: 'Tamanho não encontrado.' });
+    if (preco !== undefined && preco !== '' && (!Number.isFinite(Number(preco)) || Number(preco) <= 0)) {
+      return res.status(400).json({ error: 'Informe um preço válido maior que zero.' });
+    }
+    await pool.query(
+      `UPDATE produto_tamanhos SET tamanho = ?, descricao = ?, preco = ?, ativo = ?
+       WHERE id = ? AND produto_id = ?`,
+      [
+        String(tamanho || '').trim().toUpperCase() || 'P',
+        descricao || null,
+        preco === undefined || preco === '' ? null : Number(preco),
+        ativo === undefined ? 1 : (['1', 1, true, 'true'].includes(ativo) ? 1 : 0),
+        tamanhoId,
+        id,
+      ]
+    );
+    res.json({ message: 'Variação atualizada com sucesso.' });
+  } catch (err) { next(err); }
+}
+
+async function uploadSizeImage(req, res, next) {
+  try {
+    const { id, tamanhoId } = req.params;
+    if (!req.file) return res.status(400).json({ error: 'Selecione uma imagem.' });
+    const [rows] = await pool.query(
+      'SELECT imagem_url FROM produto_tamanhos WHERE id = ? AND produto_id = ?',
+      [tamanhoId, id]
+    );
+    if (!rows.length) return res.status(404).json({ error: 'Variação não encontrada.' });
+    const imageUrl = urlDoArquivo(req.file);
+    await pool.query('UPDATE produto_tamanhos SET imagem_url = ? WHERE id = ? AND produto_id = ?', [imageUrl, tamanhoId, id]);
+    if (rows[0].imagem_url && rows[0].imagem_url !== imageUrl) removerArquivo(rows[0].imagem_url);
+    res.json({ message: 'Foto da variação atualizada.', imagem_url: imageUrl });
+  } catch (err) { next(err); }
+}
+
+async function deleteSizeImage(req, res, next) {
+  try {
+    const { id, tamanhoId } = req.params;
+    const [rows] = await pool.query(
+      'SELECT imagem_url FROM produto_tamanhos WHERE id = ? AND produto_id = ?',
+      [tamanhoId, id]
+    );
+    if (!rows.length) return res.status(404).json({ error: 'Variação não encontrada.' });
+    await pool.query('UPDATE produto_tamanhos SET imagem_url = NULL WHERE id = ? AND produto_id = ?', [tamanhoId, id]);
+    if (rows[0].imagem_url) {
+      const [refs] = await pool.query('SELECT id FROM produtos WHERE imagem_url = ? UNION SELECT id FROM produto_imagens WHERE imagem_url = ? LIMIT 1', [rows[0].imagem_url, rows[0].imagem_url]);
+      if (!refs.length) removerArquivo(rows[0].imagem_url);
+    }
+    res.json({ message: 'Foto da variação removida.' });
+  } catch (err) { next(err); }
+}
+
 async function deleteSize(req, res, next) {
   try {
     const { tamanhoId } = req.params;
@@ -506,6 +583,9 @@ module.exports = {
   updateColor,
   deleteColor,
   createSize,
+  updateSize,
+  uploadSizeImage,
+  deleteSizeImage,
   deleteSize,
   salvarVariacoesEstoque,
   definirFotoPrincipal,

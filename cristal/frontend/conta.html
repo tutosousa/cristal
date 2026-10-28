@@ -274,7 +274,7 @@ function renderizarTabelaPedidos() {
     <tr>
       <td>${escapeHtml(p.numero_pedido)}</td>
       <td>${formatarData(p.criado_em)}</td>
-      <td>${p.tipo_pedido === 'atacado' ? 'Compra em quantidade' : 'Padrão'}</td>
+      <td>Padrão</td>
       <td>${formatarPreco(p.total)}</td>
       <td><span class="badge badge-${p.status}">${escapeHtml(p.status)}</span></td>
       <td>

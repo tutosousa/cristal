@@ -41,12 +41,12 @@
         <table class="tabela-admin">
           <thead>
             <tr>
-              <th>Produto</th><th>Categoria</th><th>Custo</th><th>Preço</th>
+              <th>Produto</th><th>Categoria</th><th>Preço</th>
               <th>Estoque</th><th>Flores</th><th>Status</th><th></th>
             </tr>
           </thead>
           <tbody id="tabela-produtos">
-            <tr><td colspan="8">Carregando...</td></tr>
+            <tr><td colspan="7">Carregando...</td></tr>
           </tbody>
         </table>
       </div>
@@ -75,15 +75,9 @@
         <textarea id="p_descricao" rows="3" placeholder="Descrição geral do produto"></textarea>
       </div>
 
-      <div class="campo-linha">
-        <div class="campo">
-          <label for="p_custo">Preço de custo (R$)</label>
-          <input type="number" id="p_custo" step="0.01" min="0" required>
-        </div>
-        <div class="campo" id="campo-preco-base">
-          <label for="p_varejo">Preço base (R$)</label>
-          <input type="number" id="p_varejo" step="0.01" min="0" required>
-        </div>
+      <div class="campo" id="campo-preco-base">
+        <label for="p_varejo">Preço (R$)</label>
+        <input type="number" id="p_varejo" step="0.01" min="0" required>
       </div>
 <div class="campo-linha">
 <div class="campo" id="campo-estoque">
@@ -105,28 +99,6 @@
           <label style="display:flex; align-items:center; gap:6px; font-weight:400;">
             <input type="radio" name="p_possui_flores" id="p_possui_flores_nao" value="nao" style="width:auto;" checked> Não
           </label>
-        </div>
-      </div>
-
-      <label>Peso e dimensões da embalagem</label>
-      <div class="campo-linha">
-        <div class="campo">
-          <label for="p_peso" style="font-weight:400; font-size:0.85rem;">Peso (kg)</label>
-          <input type="number" id="p_peso" min="0.05" step="0.01" value="0.3">
-        </div>
-        <div class="campo">
-          <label for="p_altura" style="font-weight:400; font-size:0.85rem;">Altura (cm)</label>
-          <input type="number" id="p_altura" min="1" value="5">
-        </div>
-      </div>
-      <div class="campo-linha">
-        <div class="campo">
-          <label for="p_largura" style="font-weight:400; font-size:0.85rem;">Largura (cm)</label>
-          <input type="number" id="p_largura" min="1" value="25">
-        </div>
-        <div class="campo">
-          <label for="p_comprimento" style="font-weight:400; font-size:0.85rem;">Comprimento (cm)</label>
-          <input type="number" id="p_comprimento" min="1" value="35">
         </div>
       </div>
 
@@ -247,7 +219,7 @@ async function carregarProdutos() {
     const produtos = await apiFetchAdmin('/produtos/admin/all');
 
     if (produtos.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="8">Nenhum produto cadastrado ainda.</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="7">Nenhum produto cadastrado ainda.</td></tr>`;
       return;
     }
 
@@ -255,7 +227,6 @@ async function carregarProdutos() {
       <tr>
         <td>${escapeHtml(p.nome)}</td>
         <td>${escapeHtml(p.categoria)}</td>
-        <td>${formatarPreco(p.preco_custo)}</td>
         <td>${p.possui_flores ? (Number(p.preco_exibicao) > 0 ? formatarPreco(p.preco_exibicao) : 'Defina os preços dos tamanhos') : formatarPreco(p.preco_varejo)}</td>
         <td>${p.possui_flores ? 'Infinito' : p.estoque}</td>
         <td>${p.possui_flores ? '<span class="badge badge-entregue">Sim</span>' : '<span class="badge badge-cancelado">Não</span>'}</td>
@@ -276,7 +247,7 @@ async function carregarProdutos() {
       btn.addEventListener('click', () => removerProduto(btn.dataset.remover));
     });
   } catch (err) {
-    tbody.innerHTML = `<tr><td colspan="8">${escapeHtml(err.message)}</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="7">${escapeHtml(err.message)}</td></tr>`;
   }
 }
 
@@ -314,15 +285,10 @@ async function abrirModalEdicao(produtoId) {
     document.getElementById('p_nome').value = produto.nome;
     document.getElementById('p_categoria').value = produto.categoria_id;
     document.getElementById('p_descricao').value = produto.descricao || '';
-    document.getElementById('p_custo').value = produto.preco_custo;
     document.getElementById('p_varejo').value = produto.preco_varejo;
     document.getElementById('p_estoque').value = produto.estoque;
     document.getElementById('p_possui_flores_sim').checked = Boolean(produto.possui_flores);
     document.getElementById('p_possui_flores_nao').checked = !produto.possui_flores;
-    document.getElementById('p_peso').value = produto.peso_kg || 0.3;
-    document.getElementById('p_altura').value = produto.altura_cm || 5;
-    document.getElementById('p_largura').value = produto.largura_cm || 25;
-    document.getElementById('p_comprimento').value = produto.comprimento_cm || 35;
 
     renderizarCores(produto);
     renderizarTamanhos(produto.tamanhos || []);
@@ -713,14 +679,9 @@ document.getElementById('form-produto').addEventListener('submit', async (e) => 
   formData.append('categoria_id', document.getElementById('p_categoria').value);
   formData.append('descricao', document.getElementById('p_descricao').value);
   const possuiFlores = document.getElementById('p_possui_flores_sim').checked;
-  formData.append('preco_custo', document.getElementById('p_custo').value);
   formData.append('preco_varejo', possuiFlores ? '0' : document.getElementById('p_varejo').value);
   formData.append('estoque', possuiFlores ? '0' : document.getElementById('p_estoque').value);
   formData.append('possui_flores', possuiFlores ? 'true' : 'false');
-  formData.append('peso_kg', document.getElementById('p_peso').value);
-  formData.append('altura_cm', document.getElementById('p_altura').value);
-  formData.append('largura_cm', document.getElementById('p_largura').value);
-  formData.append('comprimento_cm', document.getElementById('p_comprimento').value);
 
   const arquivosImagem = document.getElementById('p_imagem').files;
   for (const arquivo of arquivosImagem) {

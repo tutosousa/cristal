@@ -30,7 +30,7 @@ async function getShippingQuote(req, res, next) {
     if (itens && itens.length > 0) {
       const ids = itens.map((i) => i.produto_id);
       const [produtos] = await pool.query(
-        `SELECT id, peso_kg, altura_cm, largura_cm, comprimento_cm, preco_varejo FROM produtos WHERE id IN (?)`,
+        `SELECT id, preco_varejo FROM produtos WHERE id IN (?)`,
         [ids]
       );
       itensComDimensoes = itens.map((item) => {
@@ -78,7 +78,7 @@ async function createOrder(req, res, next) {
 
     for (const item of itens) {
       const [produtoRows] = await connection.query(
-        'SELECT id, nome, preco_varejo, preco_custo, estoque, peso_kg, altura_cm, largura_cm, comprimento_cm, possui_flores FROM produtos WHERE id = ? AND ativo = 1 FOR UPDATE',
+        'SELECT id, nome, preco_varejo, preco_custo, estoque, possui_flores FROM produtos WHERE id = ? AND ativo = 1 FOR UPDATE',
         [item.produto_id]
       );
 
@@ -155,10 +155,6 @@ async function createOrder(req, res, next) {
         preco_custo_unitario: produto.preco_custo,
         subtotal: itemSubtotal,
         tipo_preco: 'varejo',
-        peso_kg: produto.peso_kg,
-        altura_cm: produto.altura_cm,
-        largura_cm: produto.largura_cm,
-        comprimento_cm: produto.comprimento_cm,
         possui_flores: Boolean(produto.possui_flores),
       });
 

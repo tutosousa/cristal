@@ -8,10 +8,10 @@ async function cotarFreteReal(cepDestino, itens) {
   const produtosParaCotacao = (itens && itens.length > 0)
     ? itens.map((item) => ({
         id: String(item.id || item.produto_id),
-        width: item.largura_cm || 25,
-        height: item.altura_cm || 5,
-        length: item.comprimento_cm || 35,
-        weight: item.peso_kg || 0.3,
+        width: 25,
+        height: 5,
+        length: 35,
+        weight: 0.3,
         insurance_value: Number(item.preco_unitario || item.preco_varejo || 0),
         quantity: item.quantidade || 1,
       }))

@@ -153,11 +153,11 @@ function montarSeletorTamanhos(produto) {
   if (!produto.tamanhos || produto.tamanhos.length === 0) return '';
   return `
     <div class="campo">
-      <label>Tamanho${tamanhoSelecionado ? `: ${escapeHtml(tamanhoSelecionado)}` : ''}</label>
+      <label>${produto.tamanhos.filter((t) => Number(t.ativo) !== 0).length === 1 && String(produto.tamanhos.filter((t) => Number(t.ativo) !== 0)[0].tamanho).toUpperCase() === 'ÚNICO' ? 'Tamanho único' : `Tamanho${tamanhoSelecionado ? `: ${escapeHtml(tamanhoSelecionado)}` : ''}`}</label>
       <div class="seletor-tamanhos">
-        ${produto.tamanhos.filter((t) => t.ativo !== 0).map((t) => `
+        ${produto.tamanhos.filter((t) => Number(t.ativo) !== 0).map((t) => `
           <button type="button" class="seletor-tamanhos__pill ${t.tamanho === tamanhoSelecionado ? 'ativa' : ''}"
-                  data-tamanho="${escapeHtml(t.tamanho)}">
+                  data-tamanho="${escapeHtml(t.tamanho)}" ${String(t.tamanho).toUpperCase() === 'ÚNICO' ? 'style="display:none"' : ''}>
             ${escapeHtml(t.tamanho)}
           </button>
         `).join('')}
@@ -189,6 +189,12 @@ function montarGaleria(produto) {
 
 function renderizarProduto(produto) {
   galeriaAtual = produto.galeria && produto.galeria.length > 0 ? produto.galeria : [];
+  const tamanhosAtivos = (produto.tamanhos || []).filter((t) => Number(t.ativo) !== 0);
+  if (produto.possui_flores && tamanhosAtivos.length === 1) {
+    tamanhoSelecionado = tamanhosAtivos[0].tamanho;
+  } else if (!tamanhosAtivos.some((t) => t.tamanho === tamanhoSelecionado)) {
+    tamanhoSelecionado = null;
+  }
 
   document.getElementById('conteudo-produto').innerHTML = `
     <div class="produto-detalhe">
@@ -196,7 +202,7 @@ function renderizarProduto(produto) {
       <div>
         <span class="produto-card__categoria">${escapeHtml(produto.categoria)}</span>
         <h1>${escapeHtml(produto.nome)}</h1>
-        <div class="preco-destaque" id="preco-exibido">${produto.possui_flores && !(Number(produto.preco_varejo) > 0) ? 'Escolha o tamanho' : formatarPreco(produto.preco_varejo)}</div>
+        <div class="preco-destaque" id="preco-exibido">${produto.possui_flores ? (Number(((produto.tamanhos || []).find((t) => t.tamanho === tamanhoSelecionado) || {}).preco) > 0 ? formatarPreco(((produto.tamanhos || []).find((t) => t.tamanho === tamanhoSelecionado) || {}).preco) : 'Escolha o tamanho') : formatarPreco(produto.preco_varejo)}</div>
 
         <div id="area-cores">${montarSeletorCores(produto)}</div>
         <div id="area-tamanhos">${montarSeletorTamanhos(produto)}</div>

@@ -122,7 +122,14 @@
       <div id="secao-tamanhos-flores" style="display:none; margin-top:24px;">
         <hr style="margin:24px 0; border:none; border-top:1px solid var(--cor-linha);">
         <h3 style="margin-bottom:8px;">Tamanhos e variações do produto</h3>
-        <p class="texto-suave" style="font-size:0.85rem; margin-bottom:14px;">Configure preço, composição e foto individual para PP, P, M e G. Cada preço é definido manualmente.</p>
+        <p class="texto-suave" style="font-size:0.85rem; margin-bottom:14px;">Escolha se este buquê tem tamanhos variados ou tamanho único. Cada preço é definido manualmente.</p>
+        <div class="campo" style="max-width:360px;">
+          <label for="p_tipo_tamanho">Tipo de tamanho</label>
+          <select id="p_tipo_tamanho">
+            <option value="variados">Tamanhos variados (PP, P, M e G)</option>
+            <option value="unico">Tamanho único</option>
+          </select>
+        </div>
         <div id="cards-tamanhos-flores" class="cards-cores-admin"></div>
         <div id="alerta-tamanhos-flores" style="margin-top:10px;"></div>
       </div>
@@ -256,6 +263,7 @@ function abrirModalNovo() {
   document.getElementById('form-produto').reset();
   document.getElementById('produto_id').value = '';
   document.getElementById('p_possui_flores_nao').checked = true;
+  document.getElementById('p_tipo_tamanho').value = 'variados';
   document.getElementById('alerta-modal').innerHTML = '';
   document.getElementById('secao-variacoes').style.display = 'none';
   document.getElementById('secao-tamanhos-flores').style.display = 'none';
@@ -289,6 +297,7 @@ async function abrirModalEdicao(produtoId) {
     document.getElementById('p_estoque').value = produto.estoque;
     document.getElementById('p_possui_flores_sim').checked = Boolean(produto.possui_flores);
     document.getElementById('p_possui_flores_nao').checked = !produto.possui_flores;
+    document.getElementById('p_tipo_tamanho').value = (produto.tamanhos || []).some((t) => String(t.tamanho).toUpperCase() === 'ÚNICO' && Number(t.ativo) !== 0) ? 'unico' : 'variados';
 
     renderizarCores(produto);
     renderizarTamanhos(produto.tamanhos || []);
@@ -309,6 +318,16 @@ async function recarregarProdutoNoModal() {
   renderizarEstoqueVariacoes(produto);
   return produto;
 }
+
+document.getElementById('p_tipo_tamanho').addEventListener('change', async () => {
+  const produtoId = document.getElementById('produto_id').value;
+  if (!produtoId || !document.getElementById('p_possui_flores_sim').checked) return;
+  try {
+    await recarregarProdutoNoModal();
+  } catch (err) {
+    document.getElementById('alerta-tamanhos-flores').innerHTML = `<div class="alerta alerta-erro">${escapeHtml(err.message)}</div>`;
+  }
+});
 
 function renderizarCores(produto) {
   const cores = produto.cores || [];
@@ -564,7 +583,13 @@ function renderizarTamanhosFlores(produto) {
   const container = document.getElementById('cards-tamanhos-flores');
   if (!produto.possui_flores) { secao.style.display = 'none'; container.innerHTML = ''; return; }
   secao.style.display = 'block';
-  const tamanhos = (produto.tamanhos || []).filter((t) => t.ativo !== 0 && ['PP', 'P', 'M', 'G'].includes(String(t.tamanho).toUpperCase()));
+  const tipoTamanho = document.getElementById('p_tipo_tamanho').value;
+  const permitidos = tipoTamanho === 'unico' ? ['ÚNICO'] : ['PP', 'P', 'M', 'G'];
+  const tamanhos = (produto.tamanhos || []).filter((t) => Number(t.ativo) !== 0 && permitidos.includes(String(t.tamanho).toUpperCase()));
+  if (tamanhos.length === 0) {
+    container.innerHTML = '<p class="texto-suave">Salve o produto para aplicar este tipo de tamanho. Depois, abra a edição novamente para configurar preço, descrição e foto.</p>';
+    return;
+  }
   container.innerHTML = tamanhos.map((t) => `
     <div class="card-cor-admin" style="min-width:240px; flex:1;">
       <strong style="display:block; margin-bottom:10px;">Tamanho ${escapeHtml(t.tamanho)}</strong>
@@ -618,6 +643,10 @@ function renderizarTamanhos(tamanhos) {
   const container = document.getElementById('lista-tamanhos');
   if (tamanhos.length === 0) {
     container.innerHTML = `<p class="texto-suave" style="font-size:0.85rem;">Nenhum tamanho cadastrado ainda.</p>`;
+    return;
+  }
+  if (tamanhos.length === 0) {
+    container.innerHTML = '<p class="texto-suave">Salve o produto para aplicar este tipo de tamanho. Depois, abra a edição novamente para configurar preço, descrição e foto.</p>';
     return;
   }
   container.innerHTML = tamanhos.map((t) => `
@@ -679,6 +708,7 @@ document.getElementById('form-produto').addEventListener('submit', async (e) => 
   formData.append('categoria_id', document.getElementById('p_categoria').value);
   formData.append('descricao', document.getElementById('p_descricao').value);
   const possuiFlores = document.getElementById('p_possui_flores_sim').checked;
+  formData.append('tipo_tamanho', document.getElementById('p_tipo_tamanho').value);
   formData.append('preco_varejo', possuiFlores ? '0' : document.getElementById('p_varejo').value);
   formData.append('estoque', possuiFlores ? '0' : document.getElementById('p_estoque').value);
   formData.append('possui_flores', possuiFlores ? 'true' : 'false');

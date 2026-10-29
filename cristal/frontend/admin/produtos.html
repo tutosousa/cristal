@@ -122,7 +122,7 @@
       <div id="secao-tamanhos-flores" style="display:none; margin-top:24px;">
         <hr style="margin:24px 0; border:none; border-top:1px solid var(--cor-linha);">
         <h3 style="margin-bottom:8px;">Tamanhos e variações do produto</h3>
-        <p class="texto-suave" style="font-size:0.85rem; margin-bottom:14px;">Configure preço, composição e foto individual para P, M e G. Cada preço é definido manualmente.</p>
+        <p class="texto-suave" style="font-size:0.85rem; margin-bottom:14px;">Configure preço, composição e foto individual para PP, P, M e G. Cada preço é definido manualmente.</p>
         <div id="cards-tamanhos-flores" class="cards-cores-admin"></div>
         <div id="alerta-tamanhos-flores" style="margin-top:10px;"></div>
       </div>
@@ -564,7 +564,7 @@ function renderizarTamanhosFlores(produto) {
   const container = document.getElementById('cards-tamanhos-flores');
   if (!produto.possui_flores) { secao.style.display = 'none'; container.innerHTML = ''; return; }
   secao.style.display = 'block';
-  const tamanhos = (produto.tamanhos || []).filter((t) => t.ativo !== 0 && ['P', 'M', 'G'].includes(String(t.tamanho).toUpperCase()));
+  const tamanhos = (produto.tamanhos || []).filter((t) => t.ativo !== 0 && ['PP', 'P', 'M', 'G'].includes(String(t.tamanho).toUpperCase()));
   container.innerHTML = tamanhos.map((t) => `
     <div class="card-cor-admin" style="min-width:240px; flex:1;">
       <strong style="display:block; margin-bottom:10px;">Tamanho ${escapeHtml(t.tamanho)}</strong>

@@ -214,8 +214,8 @@ async function createProduct(req, res, next) {
 
     if (possuiFloresBool) {
       await pool.query(
-        `INSERT INTO produto_tamanhos (produto_id, tamanho, ordem) VALUES (?, 'P', 0), (?, 'M', 1), (?, 'G', 2)`,
-        [produtoId, produtoId, produtoId]
+        `INSERT INTO produto_tamanhos (produto_id, tamanho, ordem) VALUES (?, 'PP', 0), (?, 'P', 1), (?, 'M', 2), (?, 'G', 3)`,
+        [produtoId, produtoId, produtoId, produtoId]
       );
     }
 
@@ -299,10 +299,10 @@ async function updateProduct(req, res, next) {
     );
 
     if (possuiFloresFinal) {
-      await pool.query("UPDATE produto_tamanhos SET ativo = 0 WHERE produto_id = ? AND tamanho NOT IN ('P', 'M', 'G')", [id]);
+      await pool.query("UPDATE produto_tamanhos SET ativo = 0 WHERE produto_id = ? AND UPPER(tamanho) NOT IN ('PP', 'P', 'M', 'G')", [id]);
       const [tamanhosAtuais] = await pool.query('SELECT tamanho FROM produto_tamanhos WHERE produto_id = ?', [id]);
       const existentes = new Set(tamanhosAtuais.map((t) => String(t.tamanho).toUpperCase()));
-      for (const [tamanho, ordem] of [['P', 0], ['M', 1], ['G', 2]]) {
+      for (const [tamanho, ordem] of [['PP', 0], ['P', 1], ['M', 2], ['G', 3]]) {
         if (!existentes.has(tamanho)) {
           await pool.query('INSERT INTO produto_tamanhos (produto_id, tamanho, ordem) VALUES (?, ?, ?)', [id, tamanho, ordem]);
         } else {

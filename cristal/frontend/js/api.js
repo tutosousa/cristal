@@ -2,7 +2,7 @@ function urlImagem(caminho) {
   if (!caminho) return '';
   return /^https?:\/\//i.test(caminho) ? caminho : `${BACKEND_ORIGIN}${caminho}`;
 }
-const BACKEND_ORIGIN = 'https://cristal-beta.vercel.app';
+const BACKEND_ORIGIN = 'http://localhost:5000';
 const API_BASE_URL = `${BACKEND_ORIGIN}/api`;
 
 async function apiFetch(path, options = {}) {

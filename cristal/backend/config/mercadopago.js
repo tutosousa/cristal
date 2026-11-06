@@ -12,3 +12,9 @@ const mpClient = MP_ATIVO
   : null;
 
 module.exports = { mpClient, MP_ATIVO, MP_PUBLIC_KEY };
+console.log('MP CONFIG:', {
+  ativo: MP_ATIVO,
+  prefixo: MP_ACCESS_TOKEN.substring(0, 7),
+  tamanho: MP_ACCESS_TOKEN.length,
+  publicKeyConfigurada: Boolean(MP_PUBLIC_KEY)
+});

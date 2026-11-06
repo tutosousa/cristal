@@ -101,7 +101,14 @@ async function carregarPedido() {
       pedido.endereco_bairro,
     ].filter(Boolean).join(' — ');
 
-    const blocoEntrega = pedido.tipo_entrega === 'entrega_local'
+    const blocoEntrega = pedido.tipo_entrega === 'retirada_loja'
+      ? `
+        <div class="secao">
+          <h2>Retirada na loja</h2>
+          <div class="linha-dado">Pedido será retirado pelo cliente na loja. Sem cobrança de frete.</div>
+        </div>
+      `
+      : pedido.tipo_entrega === 'entrega_local'
       ? `
         <div class="secao">
           <h2>Entrega local de flores</h2>

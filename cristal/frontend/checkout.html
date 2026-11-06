@@ -59,6 +59,12 @@
         </p>
       </div>
 
+      <div class="bloco-formulario">
+        <button type="button" class="btn btn-secundario btn-bloco" id="btn-retirada-loja" aria-pressed="false">
+          Retirar o pedido na loja — sem frete
+        </button>
+      </div>
+
       <div class="bloco-formulario" id="bloco-entrega-flores" style="display:none;">
         <h3>Entrega</h3>
         <p class="bloco-formulario__subtitulo">
@@ -192,6 +198,7 @@ let numeroPedidoAtual = null;
 let freteAtual = 0;
 let mpInstancia = null;
 let brickController = null;
+let retiradaNaLoja = false;
 
 if (carrinho.length === 0) {
   window.location.href = 'index.html';
@@ -201,15 +208,31 @@ const temFlores = carrinhoPossuiFlores();
 let cidadesEntregaCarregadas = [];
 let cidadeEntregaSelecionada = null;
 
-if (temFlores) {
-  document.getElementById('bloco-entrega-flores').style.display = 'block';
-  document.getElementById('bloco-endereco-tradicional').style.display = 'none';
-  carregarCidadesEntrega();
-} else {
-  document.getElementById('bloco-entrega-flores').style.display = 'none';
-  document.getElementById('bloco-endereco-tradicional').style.display = 'block';
-  document.getElementById('mensagem-preencha-cep').style.display = 'block';
+function atualizarOpcaoEntrega() {
+  document.getElementById('bloco-entrega-flores').style.display = !retiradaNaLoja && temFlores ? 'block' : 'none';
+  document.getElementById('bloco-endereco-tradicional').style.display = !retiradaNaLoja && !temFlores ? 'block' : 'none';
+  document.getElementById('btn-retirada-loja').classList.toggle('btn-primario', retiradaNaLoja);
+  document.getElementById('btn-retirada-loja').classList.toggle('btn-secundario', !retiradaNaLoja);
+  document.getElementById('btn-retirada-loja').setAttribute('aria-pressed', String(retiradaNaLoja));
+  document.getElementById('btn-retirada-loja').textContent = retiradaNaLoja
+    ? '✓ Retirada na loja selecionada — frete grátis (clique para alterar)'
+    : 'Retirar o pedido na loja — sem frete';
+  if (retiradaNaLoja) {
+    freteAtual = 0;
+    opcaoFreteSelecionada = null;
+    cidadeEntregaSelecionada = null;
+    document.getElementById('resumo-frete').textContent = 'Grátis';
+    document.getElementById('resumo-total').textContent = formatarPreco(subtotalAtual);
+  } else {
+    document.getElementById('resumo-frete').textContent = temFlores ? 'Selecione a cidade' : 'Selecione o envio';
+    document.getElementById('resumo-total').textContent = formatarPreco(subtotalAtual + freteAtual);
+  }
 }
+
+document.getElementById('btn-retirada-loja').addEventListener('click', () => {
+  retiradaNaLoja = !retiradaNaLoja;
+  atualizarOpcaoEntrega();
+});
 
 async function carregarCidadesEntrega() {
   const selectEl = document.getElementById('cidade_entrega');
@@ -274,6 +297,13 @@ function renderizarResumo() {
 
 let subtotalAtual = renderizarResumo();
 let opcaoFreteSelecionada = null;
+
+if (temFlores) {
+  carregarCidadesEntrega();
+} else {
+  document.getElementById('mensagem-preencha-cep').style.display = 'block';
+}
+atualizarOpcaoEntrega();
 
 async function buscarOpcoesFrete() {
   if (temFlores) return;
@@ -348,19 +378,19 @@ document.getElementById('form-checkout').addEventListener('submit', async (e) =>
   const alertaEl = document.getElementById('alerta-checkout');
   alertaEl.innerHTML = '';
 
-  if (!temFlores && !opcaoFreteSelecionada) {
+  if (!retiradaNaLoja && !temFlores && !opcaoFreteSelecionada) {
     alertaEl.innerHTML = `<div class="alerta alerta-erro">Preencha o CEP pra calcular o frete antes de continuar.</div>`;
     document.getElementById('area-opcoes-frete').scrollIntoView({ behavior: 'smooth', block: 'center' });
     return;
   }
 
-  if (temFlores && !cidadeEntregaSelecionada) {
+  if (!retiradaNaLoja && temFlores && !cidadeEntregaSelecionada) {
     alertaEl.innerHTML = `<div class="alerta alerta-erro">Selecione a cidade de entrega para os produtos com flores.</div>`;
     document.getElementById('cidade_entrega').scrollIntoView({ behavior: 'smooth', block: 'center' });
     return;
   }
 
-  if (temFlores) {
+  if (!retiradaNaLoja && temFlores) {
     const campoReferencia = document.getElementById('ponto_referencia');
     if (!campoReferencia.value.trim()) campoReferencia.value = 'Centro';
   }
@@ -368,6 +398,7 @@ document.getElementById('form-checkout').addEventListener('submit', async (e) =>
   const formData = new FormData(e.target);
   const dados = Object.fromEntries(formData.entries());
   dados.tipo_pedido = 'varejo';
+  dados.tipo_entrega = retiradaNaLoja ? 'retirada_loja' : undefined;
   dados.itens = carrinho.map((item) => ({
     produto_id: item.produto_id,
     quantidade: item.quantidade,
@@ -375,7 +406,7 @@ document.getElementById('form-checkout').addEventListener('submit', async (e) =>
     cor: item.cor || undefined,
   }));
 
-  if (temFlores) {
+  if (retiradaNaLoja || temFlores) {
     delete dados.endereco_cep;
     delete dados.endereco_rua;
     delete dados.endereco_numero;
@@ -385,6 +416,12 @@ document.getElementById('form-checkout').addEventListener('submit', async (e) =>
   } else {
     delete dados.ponto_referencia;
     delete dados.cidade_entrega;
+  }
+  if (retiradaNaLoja) {
+    delete dados.servico_frete_id;
+    delete dados.ponto_referencia;
+    delete dados.cidade_entrega;
+    freteAtual = 0;
   }
 
   btn.disabled = true;

@@ -246,6 +246,7 @@ async function updateProduct(req, res, next) {
       ativo,
       possui_flores,
       tipo_tamanho,
+      tamanhos_selecionados,
     } = req.body;
 
     const [existing] = await pool.query('SELECT * FROM produtos WHERE id = ?', [id]);

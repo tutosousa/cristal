@@ -182,15 +182,7 @@ async function createOrder(req, res, next) {
 
     const pedidoTemFlores = itensProcessados.some((item) => item.possui_flores);
 
-    if (req.body.tipo_entrega === 'retirada_loja') {
-      tipoEntrega = 'retirada_loja';
-      frete = 0;
-      freteDescricao = 'Retirada na loja — sem frete';
-      cidadeEntregaSalva = null;
-      pontoReferenciaSalvo = null;
-      enderecoCidadeFinal = null;
-      enderecoEstadoFinal = null;
-    } else if (pedidoTemFlores) {
+    if (pedidoTemFlores) {
       tipoEntrega = 'entrega_local';
 
       const cidadeInformada = (req.body.cidade_entrega || '').trim();
@@ -261,12 +253,12 @@ async function createOrder(req, res, next) {
         cliente_nome,
         cliente_telefone,
         cliente_email || null,
-        pedidoTemFlores || tipoEntrega === 'retirada_loja' ? null : endereco_rua || null,
-        pedidoTemFlores || tipoEntrega === 'retirada_loja' ? null : endereco_numero || null,
-        pedidoTemFlores || tipoEntrega === 'retirada_loja' ? null : endereco_bairro || null,
-        tipoEntrega === 'retirada_loja' ? null : (enderecoCidadeFinal || endereco_cidade || null),
-        tipoEntrega === 'retirada_loja' ? null : (enderecoEstadoFinal || endereco_estado || '').toUpperCase(),
-        pedidoTemFlores || tipoEntrega === 'retirada_loja' ? null : endereco_cep || null,
+        pedidoTemFlores ? null : endereco_rua || null,
+        pedidoTemFlores ? null : endereco_numero || null,
+        pedidoTemFlores ? null : endereco_bairro || null,
+        enderecoCidadeFinal || endereco_cidade || null,
+        (enderecoEstadoFinal || endereco_estado || '').toUpperCase(),
+        pedidoTemFlores ? null : endereco_cep || null,
         subtotal,
         frete,
         total,
@@ -319,12 +311,12 @@ async function createOrder(req, res, next) {
       total,
       forma_pagamento: forma_pagamento || 'mercado_pago',
       status: statusFinal,
-      endereco_rua: pedidoTemFlores || tipoEntrega === 'retirada_loja' ? null : endereco_rua,
-      endereco_numero: pedidoTemFlores || tipoEntrega === 'retirada_loja' ? null : endereco_numero,
-      endereco_bairro: pedidoTemFlores || tipoEntrega === 'retirada_loja' ? null : endereco_bairro,
-      endereco_cidade: tipoEntrega === 'retirada_loja' ? null : (enderecoCidadeFinal || endereco_cidade),
-      endereco_estado: tipoEntrega === 'retirada_loja' ? null : (enderecoEstadoFinal || endereco_estado),
-      endereco_cep: pedidoTemFlores || tipoEntrega === 'retirada_loja' ? null : endereco_cep,
+      endereco_rua: pedidoTemFlores ? null : endereco_rua,
+      endereco_numero: pedidoTemFlores ? null : endereco_numero,
+      endereco_bairro: pedidoTemFlores ? null : endereco_bairro,
+      endereco_cidade: enderecoCidadeFinal || endereco_cidade,
+      endereco_estado: enderecoEstadoFinal || endereco_estado,
+      endereco_cep: pedidoTemFlores ? null : endereco_cep,
       tipo_entrega: tipoEntrega,
       cidade_entrega: cidadeEntregaSalva,
       ponto_referencia: pontoReferenciaSalvo,

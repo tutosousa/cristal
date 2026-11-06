@@ -20,10 +20,6 @@ function montarListaProdutos(itens) {
 }
 
 function montarEnderecoTexto(pedido) {
-  if (pedido.tipo_entrega === 'retirada_loja') {
-    return 'Retirada do pedido na loja — sem frete.';
-  }
-
   if (pedido.tipo_entrega === 'entrega_local') {
     return (
       `Entrega local de flores — Cristal Floricultura\n` +

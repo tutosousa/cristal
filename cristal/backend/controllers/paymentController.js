@@ -85,15 +85,23 @@ async function processarPagamento(req, res, next) {
       qr_code_base64: resultado.point_of_interaction?.transaction_data?.qr_code_base64 || null,
       ticket_url: resultado.transaction_details?.external_resource_url || null,
     });
-  } catch (err) {
-    console.error('Erro ao processar pagamento:', err.message);
-    next(
-      Object.assign(new Error('Não foi possível processar o pagamento. Verifique os dados e tente novamente.'), {
+ } catch (err) {
+  console.error('ERRO COMPLETO MERCADO PAGO:', {
+    message: err.message,
+    status: err.status,
+    cause: err.cause,
+    response: err.response,
+  });
+
+  next(
+    Object.assign(
+      new Error('Não foi possível processar o pagamento. Verifique os dados e tente novamente.'),
+      {
         status: 502,
         expose: true,
-      })
-    );
-  }
+      }
+    )
+  );
 }
 
 async function criarPreferenciaPagamento(pedido, itens) {
